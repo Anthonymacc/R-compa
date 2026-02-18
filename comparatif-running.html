@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Comparatif Running — Générateur</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -439,6 +440,27 @@ async function callClaude(system, prompt, model='claude-sonnet-4-5') {
   return data.content[0].text;
 }
 
+// ─── PROMPT HELPERS ───────────────────────────────────────────────────────────
+function applyTemplate(tpl, vars) {
+  return tpl.replace(/\$\{(\w+)\}/g, (_, k) => vars[k] !== undefined ? String(vars[k]) : '');
+}
+function getPromptDefaultText(key) {
+  const fn = DEFAULT_PROMPTS[key];
+  if (!fn) return '';
+  if (typeof fn === 'string') return fn;
+  const src = fn.toString();
+  const bt = src.indexOf('`');
+  const lb = src.lastIndexOf('`');
+  return (bt >= 0 && lb > bt) ? src.slice(bt + 1, lb) : src;
+}
+function callPrompt(key, vars) {
+  const custom = db.customPrompts?.[key];
+  if (custom) return applyTemplate(custom, vars);
+  const fn = DEFAULT_PROMPTS[key];
+  if (typeof fn === 'function') return fn(...Object.values(vars));
+  return fn || '';
+}
+
 // ─── LOCAL GENERATORS ─────────────────────────────────────────────────────────
 function genImageBlock(p) {
   return `<!-- wp:image {"sizeSlug":"large","linkDestination":"none"} -->
@@ -464,79 +486,98 @@ async function runCompSteps(compId) {
   comp.status = 'generating';
   saveDB(); render();
 
-  const pr = DEFAULT_PROMPTS;
   const csv = produitsToCSV(comp.produits);
   const modeles = comp.produits.map(p => `${p.marque} ${p.nom}`).join(', ');
+  const sys = callPrompt('sys', {});
 
   function setStep(i, s) { state.stepStatus[i] = s; render(); }
+  const skip = (bloc) => bloc?.html && bloc?.status !== 'pending' && bloc?.status !== 'error';
 
   try {
     // Étape 1 : Intro
-    setStep(0, 'active');
-    comp.blocs.intro.html = await callClaude(pr.sys, pr.p_intro(comp.titre, csv, comp.produits.length));
-    comp.blocs.intro.status = 'generated';
-    setStep(0, 'done'); saveDB();
+    if (skip(comp.blocs.intro)) { setStep(0,'done'); }
+    else {
+      setStep(0, 'active');
+      comp.blocs.intro.html = await callClaude(sys, callPrompt('p_intro', {titre: comp.titre, csv, nbProduits: comp.produits.length, nb: comp.produits.length}));
+      comp.blocs.intro.status = 'generated';
+      setStep(0, 'done'); saveDB();
+    }
 
     // Étape 2 : Tableau
-    setStep(1, 'active');
-    comp.blocs.tableau.html = await callClaude(pr.sys, pr.p_tableau(csv, TEMPLATE_TABLEAU_CSS));
-    comp.blocs.tableau.status = 'generated';
-    setStep(1, 'done'); saveDB();
+    if (skip(comp.blocs.tableau)) { setStep(1,'done'); }
+    else {
+      setStep(1, 'active');
+      comp.blocs.tableau.html = await callClaude(sys, callPrompt('p_tableau', {csv, template_css: TEMPLATE_TABLEAU_CSS}));
+      comp.blocs.tableau.status = 'generated';
+      setStep(1, 'done'); saveDB();
+    }
 
     // Étapes 3+4+5+6+7 : par produit
     const batchSize = 3;
     const produits = comp.produits;
-
     setStep(2, 'active'); setStep(3, 'active'); setStep(4, 'active'); setStep(5, 'active'); setStep(6, 'active');
 
     for (let i = 0; i < produits.length; i += batchSize) {
       const batch = produits.slice(i, i + batchSize);
       await Promise.all(batch.map(async p => {
         const csvP = produitToCSV(p);
-        // Fiche (3)
-        comp.blocs.fiches[p.id].html = await callClaude(pr.sys, pr.p_fiche(p.nom, p.marque, csvP, ''));
-        comp.blocs.fiches[p.id].status = 'generated';
-        // Image (4) — local
-        comp.blocs.images[p.id].html = genImageBlock(p);
-        comp.blocs.images[p.id].status = 'generated';
-        // Paragraphe (5)
-        comp.blocs.paragraphes[p.id].html = await callClaude(pr.sys, pr.p_paragraphe(p.nom, p.marque, csvP));
-        comp.blocs.paragraphes[p.id].status = 'generated';
-        // CTA (6) — local
-        comp.blocs.cta[p.id].html = genCtaBlock(p);
-        comp.blocs.cta[p.id].status = 'generated';
-        // Maillage (7) — Haiku
         const articles = (comp.articlesInternes||[]).map(a => `${a.titre} : ${a.url}`).join('\n');
-        comp.blocs.maillage[p.id].html = await callClaude(pr.sys, pr.p_maillage(p.nom, p.marque, articles), 'claude-haiku-4-5');
-        comp.blocs.maillage[p.id].status = 'generated';
-        // Detect placeholders
-        const matches = comp.blocs.maillage[p.id].html.match(/\{\{[^}]+\}\}/g) || [];
-        const phObj = {};
-        matches.forEach(m => { phObj[m] = ''; });
-        comp.blocs.maillage[p.id].placeholders = phObj;
+        if (!skip(comp.blocs.fiches[p.id])) {
+          comp.blocs.fiches[p.id].html = await callClaude(sys, callPrompt('p_fiche', {nom: p.nom, marque: p.marque, csv_produit: csvP, template_css: ''}));
+          comp.blocs.fiches[p.id].status = 'generated';
+        }
+        if (!skip(comp.blocs.images[p.id])) {
+          comp.blocs.images[p.id].html = genImageBlock(p);
+          comp.blocs.images[p.id].status = 'generated';
+        }
+        if (!skip(comp.blocs.paragraphes[p.id])) {
+          comp.blocs.paragraphes[p.id].html = await callClaude(sys, callPrompt('p_paragraphe', {nom: p.nom, marque: p.marque, csv_produit: csvP}));
+          comp.blocs.paragraphes[p.id].status = 'generated';
+        }
+        if (!skip(comp.blocs.cta[p.id])) {
+          comp.blocs.cta[p.id].html = genCtaBlock(p);
+          comp.blocs.cta[p.id].status = 'generated';
+        }
+        if (!skip(comp.blocs.maillage[p.id])) {
+          comp.blocs.maillage[p.id].html = await callClaude(sys, callPrompt('p_maillage', {nom: p.nom, marque: p.marque, articles}), 'claude-haiku-4-5');
+          comp.blocs.maillage[p.id].status = 'generated';
+          const matches = comp.blocs.maillage[p.id].html.match(/\{\{[^}]+\}\}/g) || [];
+          const phObj = {};
+          matches.forEach(m => { phObj[m] = ''; });
+          comp.blocs.maillage[p.id].placeholders = phObj;
+        }
       }));
       saveDB(); render();
     }
     setStep(2,'done'); setStep(3,'done'); setStep(4,'done'); setStep(5,'done'); setStep(6,'done');
 
     // Étape 8 : Éducatif
-    setStep(7, 'active');
-    comp.blocs.educatif.html = await callClaude(pr.sys, pr.p_educatif(csv, modeles));
-    comp.blocs.educatif.status = 'generated';
-    setStep(7, 'done'); saveDB();
+    if (skip(comp.blocs.educatif)) { setStep(7,'done'); }
+    else {
+      setStep(7, 'active');
+      comp.blocs.educatif.html = await callClaude(sys, callPrompt('p_educatif', {csv, modeles}));
+      comp.blocs.educatif.status = 'generated';
+      setStep(7, 'done'); saveDB();
+    }
 
     // Étape 9 : Conclusion
-    setStep(8, 'active');
-    const csvSorted = produitsToCSV([...comp.produits].sort((a,b)=>b.note-a.note));
-    comp.blocs.conclusion.html = await callClaude(pr.sys, pr.p_conclusion(csvSorted));
-    comp.blocs.conclusion.status = 'generated';
-    setStep(8, 'done'); saveDB();
+    if (skip(comp.blocs.conclusion)) { setStep(8,'done'); }
+    else {
+      setStep(8, 'active');
+      const csvSorted = produitsToCSV([...comp.produits].sort((a,b)=>b.note-a.note));
+      comp.blocs.conclusion.html = await callClaude(sys, callPrompt('p_conclusion', {csv: csvSorted}));
+      comp.blocs.conclusion.status = 'generated';
+      setStep(8, 'done'); saveDB();
+    }
 
     // Étape 10 : FAQ
-    setStep(9, 'active');
-    comp.blocs.faq.html = await callClaude(pr.sys, pr.p_faq(comp.titre, modeles, TEMPLATE_FAQ_CSS));
-    comp.blocs.faq.status = 'generated';
-    setStep(9, 'done'); saveDB();
+    if (skip(comp.blocs.faq)) { setStep(9,'done'); }
+    else {
+      setStep(9, 'active');
+      comp.blocs.faq.html = await callClaude(sys, callPrompt('p_faq', {titre: comp.titre, modeles, template_css: TEMPLATE_FAQ_CSS}));
+      comp.blocs.faq.status = 'generated';
+      setStep(9, 'done'); saveDB();
+    }
 
     comp.status = 'review';
     state.generating = false;
@@ -547,8 +588,9 @@ async function runCompSteps(compId) {
     render();
   } catch(e) {
     state.generating = false;
-    comp.status = 'draft';
-    state.stepStatus[state.stepStatus.findIndex(s => s === 'active')] = 'error';
+    comp.status = 'generating'; // garder 'generating' pour afficher le bouton Reprendre
+    const errIdx = state.stepStatus.findIndex(s => s === 'active');
+    if (errIdx >= 0) state.stepStatus[errIdx] = 'error';
     saveDB(); render();
     showToast('Erreur : ' + e.message, 'err');
   }
@@ -562,7 +604,12 @@ function assembleComparatif(comp) {
   html += (comp.blocs.tableau.html || '') + '\n';
   html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">Fiches &amp; avis détaillés</h2>\n<!-- /wp:heading -->\n`;
   comp.produits.forEach(p => {
-    html += (comp.blocs.paragraphes[p.id]?.html || '') + '\n';
+    const paraHtml = comp.blocs.paragraphes[p.id]?.html || '';
+    // Ajouter un heading de secours si le paragraphe n'en contient pas
+    if (paraHtml && !paraHtml.includes('wp:heading')) {
+      html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">${esc(p.marque)} ${esc(p.nom)}</h2>\n<!-- /wp:heading -->\n`;
+    }
+    html += paraHtml + '\n';
     html += (comp.blocs.images[p.id]?.html || '') + '\n';
     html += (comp.blocs.fiches[p.id]?.html || '') + '\n';
     html += (comp.blocs.maillage[p.id]?.html || '') + '\n';
@@ -842,6 +889,19 @@ function renderCompNew() {
     `}
   </div>
 
+  ${comp.produits.length >= 2 ? (() => {
+    const n = comp.produits.length;
+    const apiCalls = 2 + n * 3 + 3; // intro+tableau + N*(fiche+para+maillage) + educ+concl+faq
+    const tokIn = Math.round((500 + 3000 + n*(3000+1000+500) + 1500+1500+1500));
+    const tokOut = Math.round((800 + 4000 + n*(4000+500+300) + 3000+1500+2000));
+    const costEur = ((tokIn * 3 + tokOut * 15) / 1_000_000 * 0.93).toFixed(2);
+    const mins = Math.round(apiCalls * 0.4);
+    return `<div class="alert alert-info" style="margin-top:12px">
+      💡 <strong>Estimation pour ${n} produits :</strong>
+      ~${apiCalls} appels API · ~${(tokIn/1000).toFixed(0)}K tokens in / ${(tokOut/1000).toFixed(0)}K tokens out ·
+      <strong>~${costEur}€</strong> · ~${mins} min
+    </div>`;
+  })() : ''}
   <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
     <button class="btn btn-secondary" data-page="home">Annuler</button>
     <button class="btn btn-primary ${!allComplete?'disabled':''}" id="cn-launch" ${!allComplete?'disabled':''} title="${!allComplete?'Ajoutez au moins 2 produits complets':''}">
@@ -855,7 +915,7 @@ function renderCompNew() {
 // ─── PRODUCT MODAL ────────────────────────────────────────────────────────────
 function renderProductModal(pid) {
   const comp = getComp();
-  const p = pid ? comp.produits.find(x => x.id === pid) : null;
+  const p = pid ? comp.produits.find(x => String(x.id) === String(pid)) : null;
   const isNew = !p;
   const v = p || { id:uid(), nom:'', marque:'', prix:'', note:'', poids:'', drop:'', mousse:'', usages:[], pointFort1:'', pointFort2:'', pointFaible:'', urlImage:'', urlAffilie:'', urlTest:'' };
   return `
@@ -974,6 +1034,19 @@ function renderCompProgress() {
     </div>
   </div>
   ${state.generating ? `<div class="alert alert-info" style="margin-top:16px">⏳ Génération en cours, ne fermez pas cette fenêtre…</div>` : ''}
+  ${!state.generating && state.stepStatus.includes('error') ? `
+    <div class="alert alert-warn" style="margin-top:16px">
+      ❌ La génération s'est interrompue. Les blocs déjà générés sont sauvegardés.
+      <br><br>
+      <button class="btn btn-primary" id="btn-reprendre">🔄 Reprendre la génération</button>
+    </div>
+  ` : ''}
+  ${!state.generating && !state.stepStatus.includes('error') && doneCount === 10 ? `
+    <div class="alert" style="margin-top:16px;background:rgba(3,202,161,.1);border:1px solid rgba(3,202,161,.3);color:#035e4d">
+      ✅ Génération terminée !
+      <button class="btn btn-primary btn-sm" style="margin-left:12px" data-page="comp-review">Aller en révision →</button>
+    </div>
+  ` : ''}
 </div>`;
 }
 
@@ -1372,31 +1445,45 @@ function renderStepsPrompts() {
       <span class="badge badge-gray">Envoyé à chaque appel API</span>
     </div>
     <p style="color:var(--gray);font-size:12px;margin-bottom:8px">Ce prompt définit le rôle de Claude, le ton et les règles de formatage WordPress.</p>
-    <pre style="background:var(--bg);border:1px solid var(--gray-border);border-radius:8px;padding:14px;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-x:auto;color:var(--dark)">${esc(SYS_COMP)}</pre>
+    <textarea class="form-input" id="sp-sys" style="font-size:12px;font-family:monospace;min-height:80px">${esc(db.customPrompts?.['sys'] || SYS_COMP)}</textarea>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-primary btn-sm" data-save-prompt="sys">💾 Enregistrer</button>
+      ${db.customPrompts?.['sys'] ? `<button class="btn btn-ghost btn-sm" data-reset-prompt="sys">↩ Réinitialiser</button><span class="badge badge-yellow" style="align-self:center">Personnalisé</span>` : '<span class="badge badge-gray" style="align-self:center">Par défaut</span>'}
+    </div>
   </div>
 
   ${STEPS_META.map(step => {
-    const promptSrc = getPromptSource(step.promptKey);
+    const hasPrompt = !!step.promptKey;
+    const defaultTxt = hasPrompt ? getPromptDefaultText(step.promptKey) : '';
+    const customTxt = hasPrompt ? (db.customPrompts?.[step.promptKey] || '') : '';
+    const isCustom = !!customTxt;
     return `
   <div class="card" style="margin-bottom:14px">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
       <div style="width:32px;height:32px;border-radius:50%;background:var(--green);color:#083b33;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0">${step.num}</div>
       <div style="flex:1">
         <div style="font-weight:700;font-size:15px">${step.label}</div>
-        <div style="font-size:12px;color:var(--gray);margin-top:2px;display:flex;align-items:center;gap:8px">
+        <div style="font-size:12px;color:var(--gray);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span class="badge ${step.badge}">${step.model}</span>
           ${step.vars.map(v => `<code style="background:var(--bg);border:1px solid var(--gray-border);border-radius:4px;padding:1px 5px;font-size:11px">${esc(v)}</code>`).join(' ')}
+          ${isCustom ? '<span class="badge badge-yellow">Personnalisé</span>' : ''}
         </div>
       </div>
     </div>
     <p style="font-size:13px;color:var(--dark);margin-bottom:8px">${step.desc}</p>
-    <div style="font-size:12px;color:var(--gray);margin-bottom:${promptSrc?'10px':'0'}">
-      <strong>Sortie :</strong> ${esc(step.output)}
-    </div>
-    ${promptSrc ? `
-    <details style="margin-top:8px">
-      <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--green);padding:6px 0;user-select:none">▶ Voir le prompt complet</summary>
-      <pre style="background:var(--bg);border:1px solid var(--gray-border);border-radius:8px;padding:14px;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-x:auto;color:var(--dark);margin-top:8px">${esc(promptSrc)}</pre>
+    <div style="font-size:12px;color:var(--gray);margin-bottom:10px"><strong>Sortie :</strong> ${esc(step.output)}</div>
+    ${hasPrompt ? `
+    <details style="margin-top:4px" ${isCustom ? '' : ''}>
+      <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--green);padding:6px 0;user-select:none">✏️ Modifier le prompt</summary>
+      <div style="margin-top:10px">
+        <p style="font-size:11px;color:var(--gray);margin-bottom:6px">Variables disponibles : ${step.vars.map(v=>`<code style="background:var(--bg);border:1px solid var(--gray-border);border-radius:3px;padding:1px 4px">${esc(v)}</code>`).join(' ')}</p>
+        <textarea class="form-input" id="sp-${step.promptKey}" style="font-size:12px;font-family:monospace;min-height:180px" placeholder="Laissez vide pour utiliser le prompt par défaut…">${esc(customTxt)}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" data-save-prompt="${step.promptKey}">💾 Enregistrer</button>
+          <button class="btn btn-ghost btn-sm" data-copy-default="${step.promptKey}">📋 Copier le prompt par défaut</button>
+          ${isCustom ? `<button class="btn btn-danger btn-sm" data-reset-prompt="${step.promptKey}">↩ Réinitialiser</button>` : ''}
+        </div>
+      </div>
     </details>
     ` : `<div style="font-size:12px;color:var(--gray);padding:8px 12px;background:rgba(3,202,161,.07);border-radius:6px;border-left:3px solid var(--green)">⚡ Génération locale — aucun prompt envoyé à Claude</div>`}
   </div>`;
@@ -1437,6 +1524,14 @@ function bind() {
   document.querySelectorAll('[data-page]').forEach(el => {
     el.addEventListener('click', () => {
       const p = el.dataset.page;
+      // Nettoyer le comp vide si on quitte comp-new sans rien avoir saisi
+      if (state.page === 'comp-new' && p !== 'comp-new') {
+        const cur = getComp();
+        if (cur && !cur.titre && cur.produits.length === 0) {
+          db.comparatifs = db.comparatifs.filter(c => c.id !== cur.id);
+          saveDB();
+        }
+      }
       if (p === 'comp-new') { state.compId = null; }
       state.page = p; render();
     });
@@ -1499,6 +1594,13 @@ function bind() {
     comp.targetSite = document.getElementById('cn-site').value;
     saveDB(); showToast('Informations enregistrées !');
   });
+  // Auto-save titre on blur
+  const titreInput = document.getElementById('cn-titre');
+  if (titreInput) titreInput.addEventListener('blur', () => {
+    const comp = getComp(); if (!comp) return;
+    const v = titreInput.value.trim();
+    if (v && v !== comp.titre) { comp.titre = v; saveDB(); }
+  });
 
   const dlCsvBtn = document.getElementById('cn-dl-csv');
   if (dlCsvBtn) dlCsvBtn.addEventListener('click', downloadCSVTemplate);
@@ -1511,7 +1613,7 @@ function bind() {
 
   document.querySelectorAll('[data-edit-pid]').forEach(el => {
     el.addEventListener('click', () => {
-      document.getElementById('modal-root').innerHTML = renderProductModal(parseInt(el.dataset.editPid));
+      document.getElementById('modal-root').innerHTML = renderProductModal(el.dataset.editPid);
       bindModal();
     });
   });
@@ -1520,7 +1622,7 @@ function bind() {
     el.addEventListener('click', () => {
       if (!confirm('Supprimer ce produit ?')) return;
       const comp = getComp(); if (!comp) return;
-      comp.produits = comp.produits.filter(p => p.id !== parseInt(el.dataset.delPid));
+      comp.produits = comp.produits.filter(p => String(p.id) !== String(el.dataset.delPid));
       saveDB(); render();
     });
   });
@@ -1569,6 +1671,47 @@ function bind() {
     runCompSteps(comp.id);
   });
 
+  // Reprendre génération
+  const reprendreBtn = document.getElementById('btn-reprendre');
+  if (reprendreBtn) reprendreBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    if (!db.apiKey) { showToast('Clé API manquante.', 'err'); return; }
+    state.generating = true;
+    state.stepStatus = Array(10).fill('pending');
+    comp.status = 'generating';
+    render();
+    runCompSteps(comp.id);
+  });
+
+  // Prompt save/reset/copy-default
+  document.querySelectorAll('[data-save-prompt]').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.savePrompt;
+      const ta = document.getElementById(`sp-${key}`);
+      if (!ta) return;
+      const val = ta.value.trim();
+      if (!db.customPrompts) db.customPrompts = {};
+      if (val) { db.customPrompts[key] = val; showToast('Prompt enregistré !'); }
+      else { delete db.customPrompts[key]; showToast('Prompt réinitialisé (défaut utilisé).'); }
+      saveDB(); render();
+    });
+  });
+  document.querySelectorAll('[data-reset-prompt]').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.resetPrompt;
+      if (!db.customPrompts) db.customPrompts = {};
+      delete db.customPrompts[key];
+      saveDB(); render(); showToast('Prompt réinitialisé !');
+    });
+  });
+  document.querySelectorAll('[data-copy-default]').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.copyDefault;
+      const ta = document.getElementById(`sp-${key}`);
+      if (ta) { ta.value = getPromptDefaultText(key); ta.focus(); }
+    });
+  });
+
   // Drag & drop for product list
   bindDragDrop();
 
@@ -1597,6 +1740,10 @@ function bind() {
         }
       }
       setBlocStatus(comp, key, 'validated');
+      // Auto-ready si tous les blocs obligatoires sont validés
+      const allGlobal = ['intro','tableau','educatif','conclusion','faq'].every(k => comp.blocs[k]?.status === 'validated');
+      const allProd = comp.produits.every(p => ['fiches','paragraphes','cta'].every(t => comp.blocs[t]?.[p.id]?.status === 'validated'));
+      if (allGlobal && allProd && comp.status === 'review') { comp.status = 'ready'; showToast('Tous les blocs validés — article prêt !'); }
       saveDB(); render();
     });
   });
@@ -1740,7 +1887,7 @@ function bindModal() {
     const isNew = saveBtn.dataset.isNew === 'true';
     const usages = [...document.querySelectorAll('[name="pm-usage"]:checked')].map(i => i.value);
     const data = {
-      id: isNew ? uid() : parseInt(pid)||pid,
+      id: isNew ? uid() : pid,
       nom: document.getElementById('pm-nom').value.trim(),
       marque: document.getElementById('pm-marque').value,
       prix: parseFloat(document.getElementById('pm-prix').value)||0,
@@ -1783,8 +1930,8 @@ function bindDragDrop() {
     }});
     item.addEventListener('drop', () => {
       const comp = getComp(); if (!comp) return;
-      const newOrder = [...list.querySelectorAll('.product-item')].map(el => parseInt(el.dataset.pid));
-      comp.produits.sort((a,b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+      const newOrder = [...list.querySelectorAll('.product-item')].map(el => String(el.dataset.pid));
+      comp.produits.sort((a,b) => newOrder.indexOf(String(a.id)) - newOrder.indexOf(String(b.id)));
       saveDB();
     });
   });
@@ -1815,33 +1962,30 @@ function setBlocStatus(comp, key, status) {
 async function regenBloc(key) {
   const comp = getComp(); if (!comp) return;
   if (!db.apiKey) { showToast('Clé API manquante.', 'err'); return; }
-  const pr = DEFAULT_PROMPTS;
   const csv = produitsToCSV(comp.produits);
   const modeles = comp.produits.map(p => `${p.marque} ${p.nom}`).join(', ');
+  const sys = callPrompt('sys', {});
   setBlocStatus(comp, key, 'generating');
   saveDB(); render();
   try {
     let html = '';
     if (key.includes(':')) {
       const [type, pidStr] = key.split(':');
-      const pid = parseInt(pidStr);
-      const p = comp.produits.find(x => x.id == pid);
+      const p = comp.produits.find(x => String(x.id) === pidStr);
       if (!p) throw new Error('Produit introuvable');
       const csvP = produitToCSV(p);
-      if (type === 'fiches') html = await callClaude(pr.sys, pr.p_fiche(p.nom, p.marque, csvP, ''));
-      else if (type === 'paragraphes') html = await callClaude(pr.sys, pr.p_paragraphe(p.nom, p.marque, csvP));
-      else if (type === 'maillage') {
-        const articles = (comp.articlesInternes||[]).map(a => `${a.titre} : ${a.url}`).join('\n');
-        html = await callClaude(pr.sys, pr.p_maillage(p.nom, p.marque, articles), 'claude-haiku-4-5');
-      }
+      const articles = (comp.articlesInternes||[]).map(a => `${a.titre} : ${a.url}`).join('\n');
+      if (type === 'fiches') html = await callClaude(sys, callPrompt('p_fiche', {nom: p.nom, marque: p.marque, csv_produit: csvP, template_css: ''}));
+      else if (type === 'paragraphes') html = await callClaude(sys, callPrompt('p_paragraphe', {nom: p.nom, marque: p.marque, csv_produit: csvP}));
+      else if (type === 'maillage') html = await callClaude(sys, callPrompt('p_maillage', {nom: p.nom, marque: p.marque, articles}), 'claude-haiku-4-5');
       else if (type === 'images') html = genImageBlock(p);
       else if (type === 'cta') html = genCtaBlock(p);
     } else {
-      if (key === 'intro') html = await callClaude(pr.sys, pr.p_intro(comp.titre, csv, comp.produits.length));
-      else if (key === 'tableau') html = await callClaude(pr.sys, pr.p_tableau(csv, TEMPLATE_TABLEAU_CSS));
-      else if (key === 'educatif') html = await callClaude(pr.sys, pr.p_educatif(csv, modeles));
-      else if (key === 'conclusion') html = await callClaude(pr.sys, pr.p_conclusion(csv));
-      else if (key === 'faq') html = await callClaude(pr.sys, pr.p_faq(comp.titre, modeles, TEMPLATE_FAQ_CSS));
+      if (key === 'intro') html = await callClaude(sys, callPrompt('p_intro', {titre: comp.titre, csv, nbProduits: comp.produits.length, nb: comp.produits.length}));
+      else if (key === 'tableau') html = await callClaude(sys, callPrompt('p_tableau', {csv, template_css: TEMPLATE_TABLEAU_CSS}));
+      else if (key === 'educatif') html = await callClaude(sys, callPrompt('p_educatif', {csv, modeles}));
+      else if (key === 'conclusion') html = await callClaude(sys, callPrompt('p_conclusion', {csv}));
+      else if (key === 'faq') html = await callClaude(sys, callPrompt('p_faq', {titre: comp.titre, modeles, template_css: TEMPLATE_FAQ_CSS}));
     }
     setBlocHtml(comp, key, html);
     setBlocStatus(comp, key, 'generated');
