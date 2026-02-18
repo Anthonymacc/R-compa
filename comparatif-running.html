@@ -170,8 +170,7 @@ textarea.form-input{resize:vertical;min-height:80px}
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const DB_KEY = 'comparatif_running_db';
 const WP_SITES = {
-  'Run Evasion': { url: 'https://run-evasion.fr', postType: 'blc-product-review' },
-  'Epop Trail':  { url: 'https://epoptrail.fr',  postType: 'blc-product-review' }
+  'Run Evasion': { url: 'https://run-evasion.fr', postType: 'blc-product-review' }
 };
 const THEMATIQUES = ['general','par-marque','par-budget','par-profil','marathon','debutant'];
 const THEMATIQUE_LABELS = {general:'Général','par-marque':'Par marque','par-budget':'Par budget','par-profil':'Par profil',marathon:'Marathon',debutant:'Débutant'};
@@ -630,6 +629,17 @@ function downloadFile(content, filename, type='text/html') {
   URL.revokeObjectURL(a.href);
 }
 
+function downloadCSVTemplate() {
+  const header = 'nom,marque,prix,note,poids,drop,mousse,usages,pointFort1,pointFort2,pointFaible,urlImage,urlAffilie,urlTest';
+  const rows = [
+    '"SuperBlast 2","Asics",220,4.6,246,8,"FFB Turbo","Footing|Endurance|Tempo","Polyvalence et confort","Légèreté record","Prix élevé","https://exemple.com/img1.jpg","https://fsx.i-run.fr/?P4572B581705191&redir=URL1","https://run-evasion.fr/test/asics-superblast-2/"',
+    '"Clifton 9","Hoka",160,4.4,265,5,"CMEVA","Footing|Sorties longues|Récupération","Amorti généreux","Confort au quotidien","Dynamisme limité","https://exemple.com/img2.jpg","https://fsx.i-run.fr/?P4572B581705191&redir=URL2","https://run-evasion.fr/test/hoka-clifton-9/"',
+    '"Kinvara 14","Saucony",130,4.2,215,4,"PWRRUN","Tempo|Compétition|Footing","Légèreté exceptionnelle","Réactivité","Amorti minimal","https://exemple.com/img3.jpg","https://fsx.i-run.fr/?P4572B581705191&redir=URL3",""',
+  ];
+  const csv = [header, ...rows].join('\n');
+  downloadFile(csv, 'modele-comparatif.csv', 'text/csv;charset=utf-8;');
+}
+
 // ─── RENDER HELPERS ───────────────────────────────────────────────────────────
 function statusIcon(s) {
   const map = { pending:'⚪', generating:'🔄', generated:'🔵', edited:'🟡', validated:'✅', error:'❌' };
@@ -660,6 +670,10 @@ function renderSidebar() {
 <button class="nav-item ${p==='comp-new'?'active':''}" data-page="comp-new">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
   Nouveau comparatif
+</button>
+<button class="nav-item ${p==='steps-prompts'?'active':''}" data-page="steps-prompts">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+  Étapes & Prompts
 </button>
 <div class="nav-sep"></div>
 <div class="nav-section">Paramètres</div>
@@ -743,20 +757,6 @@ function renderSettings() {
     </div>
     <button class="btn btn-primary" data-save-wp="Run Evasion">Enregistrer</button>
   </div>
-  <div class="card">
-    <div class="card-title">🌐 WordPress — Epop Trail</div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">Nom d'utilisateur</label>
-        <input class="form-input" id="s-wp-et-user" value="${esc(wc['Epop Trail']?.user||'')}" placeholder="admin">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Mot de passe d'application</label>
-        <input type="password" class="form-input" id="s-wp-et-pass" value="${esc(wc['Epop Trail']?.password||'')}" placeholder="xxxx xxxx xxxx xxxx">
-      </div>
-    </div>
-    <button class="btn btn-primary" data-save-wp="Epop Trail">Enregistrer</button>
-  </div>
 </div>`;
 }
 
@@ -797,8 +797,7 @@ function renderCompNew() {
       <div class="form-group">
         <label class="form-label">Site cible</label>
         <select class="form-input" id="cn-site">
-          <option value="Run Evasion" ${comp.targetSite==='Run Evasion'?'selected':''}>Run Evasion</option>
-          <option value="Epop Trail" ${comp.targetSite==='Epop Trail'?'selected':''}>Epop Trail</option>
+          <option value="Run Evasion" selected>Run Evasion</option>
         </select>
       </div>
     </div>
@@ -809,6 +808,7 @@ function renderCompNew() {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div class="card-title" style="margin:0">Produits (${comp.produits.length})</div>
       <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" id="cn-dl-csv">⬇ Modèle CSV</button>
         <label class="btn btn-secondary btn-sm" style="cursor:pointer">
           📂 Importer CSV
           <input type="file" accept=".csv" id="cn-csv-import" style="display:none">
@@ -1227,7 +1227,7 @@ function renderCompAssemble() {
     <div class="card-title">📤 Export</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn btn-primary" id="copy-wp">📋 Copier code WP</button>
-      <button class="btn btn-secondary" id="push-re">🚀 Push Run Evasion</button>
+      <button class="btn btn-secondary" id="push-re">🚀 Push WordPress</button>
       <button class="btn btn-secondary" id="export-html">⬇ Export HTML</button>
       <button class="btn btn-secondary" id="export-json">⬇ Export JSON</button>
     </div>
@@ -1282,6 +1282,129 @@ function renderToast() {
   return `<div style="position:fixed;bottom:24px;right:24px;z-index:999;background:${color};border:1px solid ${border};color:${textColor};padding:12px 20px;border-radius:10px;font-weight:600;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-width:320px">${esc(state.toast.msg)}</div>`;
 }
 
+// ─── RENDER STEPS & PROMPTS ──────────────────────────────────────────────────
+function renderStepsPrompts() {
+  const STEPS_META = [
+    {
+      num:1, label:'Introduction + Méthodologie', model:'Claude Sonnet', badge:'badge-blue', local:false,
+      promptKey:'p_intro', vars:['${titre}','${csv}','${nbProduits}'],
+      desc:'Génère l\'accroche du comparatif, la section "Comment nous avons sélectionné ces modèles" et le résumé rapide par profil.',
+      output:'Blocs wp:paragraph + wp:heading (intro, méthodologie, résumé)'
+    },
+    {
+      num:2, label:'Tableau HTML triable', model:'Claude Sonnet', badge:'badge-blue', local:false,
+      promptKey:'p_tableau', vars:['${csv}','${template_css}'],
+      desc:'Génère le tableau comparatif interactif avec tri par colonne (note, prix, modèle). Le CSS et le script JS sont inclus dans le bloc.',
+      output:'Bloc wp:html — table.cc-table avec CSS embarqué + script de tri JS'
+    },
+    {
+      num:3, label:'Fiches produit (×N)', model:'Claude Sonnet', badge:'badge-blue', local:false,
+      promptKey:'p_fiche', vars:['${nom}','${marque}','${csv_produit}','${template_css}'],
+      desc:'Génère une fiche produit complète pour chaque modèle : image, zone partenaire, specs, note étoiles, chips usage, pros/cons, CTA test, JSON-LD Product. Appelé 1 fois par produit, en parallèle par lots de 3.',
+      output:'Bloc wp:html — article.product-block + JSON-LD schema.org'
+    },
+    {
+      num:4, label:'Blocs image', model:'⚡ Local — sans API', badge:'badge-green', local:true,
+      promptKey:null, vars:['p.urlImage','p.marque','p.nom'],
+      desc:'Génère le bloc image WordPress standard. Aucun appel API, traitement instantané.',
+      output:'Bloc wp:image avec src, alt et figcaption'
+    },
+    {
+      num:5, label:'Paragraphes descriptifs (×N)', model:'Claude Sonnet', badge:'badge-blue', local:false,
+      promptKey:'p_paragraphe', vars:['${nom}','${marque}','${csv_produit}'],
+      desc:'Rédige un paragraphe de 150-200 mots avec heading pour chaque modèle. Sous-titre accrocheur + description des points forts + verdict usage. Appelé 1 fois par produit.',
+      output:'Blocs wp:heading (h2) + wp:paragraph'
+    },
+    {
+      num:6, label:'Blocs CTA', model:'⚡ Local — sans API', badge:'badge-green', local:true,
+      promptKey:null, vars:['p.marque','p.nom','p.urlAffilie'],
+      desc:'Génère le bloc CTA "Achetez au meilleur prix" avec le lien affilié i-Run. Template fixe, aucun appel API.',
+      output:'Bloc wp:columns fond coloré + wp:button lien affilié'
+    },
+    {
+      num:7, label:'Maillage interne (×N)', model:'Claude Haiku', badge:'badge-yellow', local:false,
+      promptKey:'p_maillage', vars:['${nom}','${marque}','${articles}'],
+      desc:'Génère 2-3 liens internes naturels vers des articles connexes. Si les URLs ne sont pas fournies, utilise des placeholders {{DOUBLE_ACCOLADES}} à remplacer dans l\'onglet Révision > Maillage. Haiku pour économiser les tokens.',
+      output:'Bloc wp:paragraph avec <a> internes ou {{PLACEHOLDERS}}'
+    },
+    {
+      num:8, label:'Sections éducatives', model:'Claude Sonnet', badge:'badge-blue', local:false,
+      promptKey:'p_educatif', vars:['${csv}','${modeles}'],
+      desc:'Rédige 3 sections SEO transversales : "Comment choisir ses chaussures", "Tableau des profils", "Critères techniques" (drop, mousse, poids).',
+      output:'Blocs wp:heading (h2) + wp:paragraph'
+    },
+    {
+      num:9, label:'Conclusion + Top 3', model:'Claude Sonnet', badge:'badge-blue', local:false,
+      promptKey:'p_conclusion', vars:['${csv}'],
+      desc:'Rédige la conclusion générale et le podium des 3 meilleurs modèles (triés par note décroissante). Inclut un appel à l\'action final.',
+      output:'Blocs wp:heading + wp:paragraph — verdict final + podium'
+    },
+    {
+      num:10, label:'FAQ HTML interactive', model:'Claude Sonnet', badge:'badge-blue', local:false,
+      promptKey:'p_faq', vars:['${titre}','${modeles}','${template_css}'],
+      desc:'Génère 6 questions/réponses SEO en HTML avec <details>/<summary>, CSS embarqué (.re-faq) et titres <h3> pour le référencement. Utilise le template FAQ.',
+      output:'Bloc wp:html — section.re-faq avec 6 details'
+    },
+  ];
+
+  const getPromptSource = (key) => {
+    if (!key) return null;
+    const fn = DEFAULT_PROMPTS[key];
+    if (!fn) return null;
+    if (typeof fn === 'string') return fn;
+    // Get arrow function body from .toString()
+    const src = fn.toString();
+    // Extract the template literal content
+    const tplMatch = src.match(/`([\s\S]+)`\s*$/);
+    return tplMatch ? tplMatch[1] : src;
+  };
+
+  return `
+<div class="page-header">
+  <h1>Étapes & Prompts</h1>
+  <p>Les 10 étapes du pipeline de génération — prompts envoyés à Claude à chaque étape</p>
+</div>
+<div class="page-content">
+
+  <div class="card" style="margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin:0">🤖 Prompt système (system prompt)</div>
+      <span class="badge badge-gray">Envoyé à chaque appel API</span>
+    </div>
+    <p style="color:var(--gray);font-size:12px;margin-bottom:8px">Ce prompt définit le rôle de Claude, le ton et les règles de formatage WordPress.</p>
+    <pre style="background:var(--bg);border:1px solid var(--gray-border);border-radius:8px;padding:14px;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-x:auto;color:var(--dark)">${esc(SYS_COMP)}</pre>
+  </div>
+
+  ${STEPS_META.map(step => {
+    const promptSrc = getPromptSource(step.promptKey);
+    return `
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--green);color:#083b33;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0">${step.num}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:15px">${step.label}</div>
+        <div style="font-size:12px;color:var(--gray);margin-top:2px;display:flex;align-items:center;gap:8px">
+          <span class="badge ${step.badge}">${step.model}</span>
+          ${step.vars.map(v => `<code style="background:var(--bg);border:1px solid var(--gray-border);border-radius:4px;padding:1px 5px;font-size:11px">${esc(v)}</code>`).join(' ')}
+        </div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--dark);margin-bottom:8px">${step.desc}</p>
+    <div style="font-size:12px;color:var(--gray);margin-bottom:${promptSrc?'10px':'0'}">
+      <strong>Sortie :</strong> ${esc(step.output)}
+    </div>
+    ${promptSrc ? `
+    <details style="margin-top:8px">
+      <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--green);padding:6px 0;user-select:none">▶ Voir le prompt complet</summary>
+      <pre style="background:var(--bg);border:1px solid var(--gray-border);border-radius:8px;padding:14px;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-x:auto;color:var(--dark);margin-top:8px">${esc(promptSrc)}</pre>
+    </details>
+    ` : `<div style="font-size:12px;color:var(--gray);padding:8px 12px;background:rgba(3,202,161,.07);border-radius:6px;border-left:3px solid var(--green)">⚡ Génération locale — aucun prompt envoyé à Claude</div>`}
+  </div>`;
+  }).join('')}
+
+</div>`;
+}
+
 // ─── MAIN RENDER ─────────────────────────────────────────────────────────────
 function render() {
   document.getElementById('sidebar').innerHTML = renderSidebar();
@@ -1292,8 +1415,9 @@ function render() {
     case 'comp-new':      content = renderCompNew(); break;
     case 'comp-progress': content = renderCompProgress(); break;
     case 'comp-review':   content = renderCompReview(); break;
-    case 'comp-assemble': content = renderCompAssemble(); break;
-    case 'comp-view':     content = renderCompView(); break;
+    case 'comp-assemble':   content = renderCompAssemble(); break;
+    case 'comp-view':       content = renderCompView(); break;
+    case 'steps-prompts':   content = renderStepsPrompts(); break;
     default:              content = renderHome();
   }
   document.getElementById('main').innerHTML = content;
@@ -1375,6 +1499,9 @@ function bind() {
     comp.targetSite = document.getElementById('cn-site').value;
     saveDB(); showToast('Informations enregistrées !');
   });
+
+  const dlCsvBtn = document.getElementById('cn-dl-csv');
+  if (dlCsvBtn) dlCsvBtn.addEventListener('click', downloadCSVTemplate);
 
   const addProdBtn = document.getElementById('cn-add-product');
   if (addProdBtn) addProdBtn.addEventListener('click', () => {
