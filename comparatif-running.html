@@ -160,6 +160,8 @@ textarea.form-input{resize:vertical;min-height:80px}
 /* Empty state */
 .empty-state{text-align:center;padding:48px 24px;color:var(--gray)}
 .empty-state h3{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--dark)}
+/* Disabled select options */
+select.form-input option:disabled{color:#94a3b8;background:#f1f5f9;font-style:italic}
 </style>
 </head>
 <body>
@@ -173,10 +175,145 @@ const DB_KEY = 'comparatif_running_db';
 const WP_SITES = {
   'Run Evasion': { url: 'https://run-evasion.fr', postType: 'blc-product-review' }
 };
-const THEMATIQUES = ['general','par-marque','par-budget','par-profil','marathon','debutant'];
-const THEMATIQUE_LABELS = {general:'Général','par-marque':'Par marque','par-budget':'Par budget','par-profil':'Par profil',marathon:'Marathon',debutant:'Débutant'};
-const MARQUES = ['Adidas','Asics','Brooks','Hoka','Mizuno','New Balance','Nike','On Running','Puma','Salomon','Saucony','Under Armour','Altra','Decathlon'];
-const USAGES_LIST = ['Footing','Endurance','Tempo','Sorties longues','Marathon','Récupération','Compétition'];
+const THEMATIQUES = ['general','par-marque','par-budget','par-profil','marathon','semi-marathon','10km','5km','debutant','pronation','supination','coureur-lourd','amorti','plaque-carbone'];
+const THEMATIQUE_LABELS = {general:'Général','par-marque':'Par marque','par-budget':'Par budget','par-profil':'Par profil',marathon:'Marathon','semi-marathon':'Semi-marathon','10km':'10 km','5km':'5 km',debutant:'Débutant',pronation:'Pronation',supination:'Supination','coureur-lourd':'Coureur lourd (+85 kg)','amorti':'Meilleur amorti','plaque-carbone':'Plaque carbone'};
+const MARQUES = ['Adidas','Asics','Brooks','On Running','New Balance','Nike','Hoka One','Mizuno','Saucony','Altra Running','Salomon','Puma'];
+const USAGES_LIST = ['Footing','Endurance','Tempo','Sorties longues','Marathon','Semi-marathon','10 km','5 km','Récupération','Compétition'];
+
+const THEMATIQUE_CONTEXT = {
+  'general': '',
+  'par-marque': `CONTEXTE THÉMATIQUE : Comparatif centré sur une marque spécifique.
+Consignes spécifiques :
+- Mets en avant l'ADN de la marque, sa philosophie et son histoire dans le running
+- Compare l'évolution des modèles de la marque entre eux
+- Explique ce qui distingue cette marque de ses concurrents directs
+- Mentionne les technologies propriétaires (ex : FLYKNIT chez Nike, GEL chez Asics, PWRRUN chez Saucony)
+- Aide le lecteur à choisir le bon modèle DANS cette marque selon son profil`,
+
+  'par-budget': `CONTEXTE THÉMATIQUE : Comparatif organisé par gamme de prix.
+Consignes spécifiques :
+- Structure la présentation par tranches de prix (< 100€, 100-150€, 150-200€, > 200€)
+- Insiste sur le rapport qualité/prix de chaque modèle
+- Mentionne les alternatives moins chères quand elles existent
+- Indique clairement ce que chaque gamme de prix apporte en plus
+- Aide le lecteur à investir au juste prix selon sa pratique`,
+
+  'par-profil': `CONTEXTE THÉMATIQUE : Comparatif ciblant un profil de coureur spécifique.
+Consignes spécifiques :
+- Adapte les recommandations au niveau, à la fréquence et aux objectifs du coureur
+- Identifie les profils types : débutant occasionnel, régulier 2-3x/semaine, compétiteur, ultra-trailer
+- Pour chaque produit, indique le profil idéal
+- Mentionne le kilométrage hebdomadaire adapté à chaque modèle`,
+
+  'marathon': `CONTEXTE THÉMATIQUE : Comparatif spécialisé chaussures de marathon (42,195 km).
+Consignes spécifiques :
+- Concentre-toi sur l'amorti longue distance et le confort après 30 km
+- Évalue le retour d'énergie et la plaque carbone/fibre si présente
+- Mentionne le poids comme critère clé (chaque gramme compte sur 42 km)
+- Parle de la transition talon-pointe et du drop adapté au marathon
+- Aborde le maintien et le verrouillage du pied sur les derniers kilomètres
+- Compare les performances sur sol mouillé et par temps chaud
+- Mentionne les records ou performances réalisés avec ces modèles
+- Conseille sur la stratégie : chaussure d'entraînement marathon vs chaussure de course le jour J`,
+
+  'semi-marathon': `CONTEXTE THÉMATIQUE : Comparatif spécialisé chaussures de semi-marathon (21,1 km).
+Consignes spécifiques :
+- Mets en avant l'équilibre vitesse/confort (le semi demande plus de rythme que le marathon)
+- Évalue la réactivité et le dynamisme de chaque modèle
+- Le poids doit être faible mais l'amorti reste important pour 21 km
+- Mentionne les chaussures polyvalentes entraînement + jour de course
+- Aborde le tempo soutenu (allure 4:00 à 5:30/km selon le niveau)
+- Conseille selon le temps visé : sub 1h30, sub 1h45, sub 2h, finisher`,
+
+  '10km': `CONTEXTE THÉMATIQUE : Comparatif spécialisé chaussures pour le 10 km.
+Consignes spécifiques :
+- Privilégie la réactivité et le dynamisme (effort de 30-50 min à haute intensité)
+- Évalue la légèreté comme critère principal
+- Le drop peut être plus bas (4-6mm) pour favoriser l'attaque médio-pied
+- Mentionne la relance et la nervosité de la semelle
+- Moins besoin d'amorti que sur marathon — plus besoin de tonicité
+- Conseille selon le niveau : sub 35 min, sub 40, sub 45, sub 50, sub 60
+- Aborde l'accroche au sol pour les 10 km sur route et les départs rapides`,
+
+  '5km': `CONTEXTE THÉMATIQUE : Comparatif spécialisé chaussures pour le 5 km.
+Consignes spécifiques :
+- Concentre-toi sur la vitesse pure et la performance brute
+- Privilégie les racing flats / chaussures de compétition ultra-légères (< 200g)
+- Le confort passe après la performance sur cette distance
+- Évalue le grip et l'accroche pour les départs explosifs
+- Mentionne la réactivité maximale de la semelle
+- Drop bas (0-4mm) pour une foulée naturelle et rapide
+- Conseille selon le niveau : sub 16 min, sub 18, sub 20, sub 25
+- Aborde la durabilité (ces chaussures s'usent vite, combien de courses ?)`,
+
+  'debutant': `CONTEXTE THÉMATIQUE : Comparatif pour coureurs débutants.
+Consignes spécifiques :
+- Mets en avant le confort et la tolérance avant tout (pas la performance)
+- Privilégie l'amorti protecteur pour les articulations pas encore habituées
+- Recommande des modèles stables et polyvalents
+- Mentionne le rapport qualité/prix (un débutant ne veut pas investir 250€)
+- Donne des conseils sur le choix de la pointure et l'essayage
+- Aborde la progressivité : commencer avec plus d'amorti, évoluer ensuite
+- Parle des erreurs fréquentes (chaussure trop petite, trop de drop, trop légère)`,
+
+  'pronation': `CONTEXTE THÉMATIQUE : Comparatif spécialisé chaussures pour coureurs pronateurs.
+Consignes spécifiques :
+- Explique clairement ce qu'est la pronation (rotation interne du pied à l'appui)
+- Distingue les niveaux : pronation légère, modérée et sévère
+- Évalue les technologies anti-pronation : guide rails (Brooks), Dynamic DuoMax (Asics), medial post, double densité
+- Mentionne le test de la foulée et l'analyse podologique
+- Classe les modèles par niveau de correction : support léger vs stabilité maximale
+- Conseille sur le passage d'une chaussure neutre à une chaussure de stabilité
+- Aborde les blessures liées à la pronation : périostite, fasciite, genou du coureur`,
+
+  'supination': `CONTEXTE THÉMATIQUE : Comparatif spécialisé chaussures pour coureurs supinateurs.
+Consignes spécifiques :
+- Explique clairement ce qu'est la supination (appui excessif sur l'extérieur du pied)
+- Mentionne que c'est moins courant que la pronation (5-10% des coureurs)
+- Recommande des chaussures neutres avec amorti renforcé (PAS de chaussures de stabilité)
+- Évalue la flexibilité et la souplesse de la semelle (le pied supinateur a besoin de liberté)
+- Mentionne l'amorti côté externe comme critère principal
+- Conseille sur les semelles orthopédiques complémentaires
+- Aborde l'usure typique de la semelle d'un supinateur (extérieur du talon)
+- Parle des blessures liées : entorse, syndrome de la bandelette iliotibiale`,
+
+  'coureur-lourd': `CONTEXTE THÉMATIQUE : Comparatif spécialisé chaussures pour coureurs lourds (+85 kg).
+Consignes spécifiques :
+- Mets en avant l'amorti renforcé et la durabilité comme critères n°1
+- Évalue la densité de la mousse (les mousses trop souples s'écrasent sous le poids)
+- Privilégie les semelles épaisses avec bon retour d'énergie qui ne "bottent" pas
+- Mentionne la stabilité : un coureur lourd a plus de risques de pronation sous le poids
+- Évalue la durabilité de la semelle extérieure (gomme, caoutchouc soufflé vs carbone)
+- Parle du drop : un drop de 8-10mm est souvent plus confortable pour les gabarits lourds
+- Aborde la protection des articulations (genoux, chevilles, dos)
+- Mentionne le poids de la chaussure elle-même (un coureur lourd supporte mieux une chaussure plus lourde mais plus protectrice)
+- Conseille sur la fréquence de remplacement (plus rapide pour les coureurs lourds, tous les 600-800 km)`,
+
+  'amorti': `CONTEXTE THÉMATIQUE : Comparatif des meilleures chaussures avec un bon amorti.
+Consignes spécifiques :
+- Compare les technologies d'amorti : mousse (EVA, TPU, PEBA), gel, air, mécanique
+- Classe les modèles par niveau d'amorti : moelleux/maximaliste vs ferme/réactif
+- Évalue le retour d'énergie (un bon amorti absorbe ET renvoie)
+- Mentionne les marques leaders en amorti : Hoka (maximaliste), Asics (GEL), Nike (ZoomX), New Balance (FuelCell)
+- Distingue amorti au talon vs amorti avant-pied
+- Parle du stack height (hauteur de semelle) et de son impact
+- Aborde le compromis amorti vs stabilité vs poids
+- Mentionne les sensations : plush/moelleux vs dynamique/réactif
+- Conseille selon l'usage : amorti max pour les sorties longues, plus ferme pour le tempo`,
+
+  'plaque-carbone': `CONTEXTE THÉMATIQUE : Comparatif des chaussures à plaque carbone.
+Consignes spécifiques :
+- Explique le rôle de la plaque carbone : effet levier, rigidité en torsion, propulsion
+- Mentionne l'historique : Nike Vaporfly qui a révolutionné le marathon
+- Compare les types de plaques : carbone pleine, carbone partielle, fibre de verre, Pebax
+- Évalue l'association plaque + mousse (la plaque seule ne suffit pas, c'est le combo qui compte)
+- Classe par distance optimale : plaque pour marathon, pour semi, pour 10km
+- Mentionne les règles World Athletics (épaisseur max 40mm, une seule plaque)
+- Aborde la durabilité : combien de km avant que la plaque perde son efficacité (300-500 km)
+- Parle du prix (généralement 200-280€) et du rapport investissement/performance
+- Conseille sur le type de coureur : la plaque carbone n'est pas pour tout le monde (il faut un minimum de vitesse pour l'activer)
+- Mentionne les alternatives : plaques nylon, fibre de verre, tiges de carbone`
+};
 const STEP_LABELS = [
   'Introduction + Méthodologie','Tableau HTML triable','Fiches produit (×N)','Blocs image (local)',
   'Paragraphes descriptifs (×N)','Blocs CTA (local)','Maillage interne (×N)',
@@ -488,7 +625,8 @@ async function runCompSteps(compId) {
 
   const csv = produitsToCSV(comp.produits);
   const modeles = comp.produits.map(p => `${p.marque} ${p.nom}`).join(', ');
-  const sys = callPrompt('sys', {});
+  const themCtx = db.customPrompts?.['ctx_' + comp.thematique] || THEMATIQUE_CONTEXT[comp.thematique] || '';
+  const sys = callPrompt('sys', {}) + (themCtx ? '\n\n' + themCtx : '');
 
   function setStep(i, s) { state.stepStatus[i] = s; render(); }
   const skip = (bloc) => bloc?.html && bloc?.status !== 'pending' && bloc?.status !== 'error';
@@ -837,9 +975,20 @@ function renderCompNew() {
       </div>
       <div class="form-group">
         <label class="form-label">Thématique</label>
-        <select class="form-input" id="cn-thematique">
-          ${THEMATIQUES.map(t => `<option value="${t}" ${comp.thematique===t?'selected':''}>${THEMATIQUE_LABELS[t]}</option>`).join('')}
-        </select>
+        ${(() => {
+          const usedThemas = db.comparatifs.filter(c => c.id !== comp.id && c.titre).map(c => c.thematique);
+          return `<select class="form-input" id="cn-thematique">
+          ${THEMATIQUES.map(t => {
+            const done = usedThemas.includes(t);
+            return `<option value="${t}" ${comp.thematique===t?'selected':''} ${done && comp.thematique!==t?'disabled':''}>${THEMATIQUE_LABELS[t]}${done?' ✓ (déjà fait)':''}</option>`;
+          }).join('')}
+        </select>`;
+        })()}
+        ${(() => {
+          const usedThemas = db.comparatifs.filter(c => c.id !== comp.id && c.titre).map(c => c.thematique);
+          const usedCount = [...new Set(usedThemas)].length;
+          return usedCount > 0 ? `<p style="font-size:11px;color:var(--gray);margin-top:4px">💡 ${usedCount} thématique${usedCount>1?'s':''} déjà utilisée${usedCount>1?'s':''} (grisée${usedCount>1?'s':''})</p>` : '';
+        })()}
       </div>
       <div class="form-group">
         <label class="form-label">Site cible</label>
@@ -1489,6 +1638,39 @@ function renderStepsPrompts() {
   </div>`;
   }).join('')}
 
+  <div style="margin-top:32px;border-top:2px solid var(--gray-border);padding-top:24px">
+    <h2 style="font-size:18px;font-weight:800;margin-bottom:8px">🎯 Contextes thématiques</h2>
+    <p style="color:var(--gray);font-size:13px;margin-bottom:20px">Chaque thématique injecte un contexte spécifique dans le system prompt. Ce contexte oriente Claude pour adapter le ton, les critères et la structure de l'article.</p>
+
+    ${THEMATIQUES.map(t => {
+      const ctx = THEMATIQUE_CONTEXT[t] || '';
+      const customKey = 'ctx_' + t;
+      const customCtx = db.customPrompts?.[customKey] || '';
+      const isCustom = !!customCtx;
+      const displayCtx = customCtx || ctx;
+      return `
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span class="badge ${ctx ? 'badge-green' : 'badge-gray'}">${THEMATIQUE_LABELS[t]}</span>
+        ${isCustom ? '<span class="badge badge-yellow">Personnalisé</span>' : ''}
+        ${!ctx && !customCtx ? '<span style="font-size:12px;color:var(--gray)">(pas de contexte spécifique — prompts standards)</span>' : ''}
+      </div>
+      ${ctx || customCtx ? `
+      <details>
+        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--green);padding:4px 0;user-select:none">✏️ Voir / modifier le contexte</summary>
+        <div style="margin-top:10px">
+          <textarea class="form-input" id="sp-ctx_${t}" style="font-size:12px;font-family:monospace;min-height:140px" placeholder="Laissez vide pour le contexte par défaut…">${esc(customCtx)}</textarea>
+          <div style="margin-top:6px;padding:10px;background:var(--bg);border:1px solid var(--gray-border);border-radius:8px;font-size:11px;font-family:monospace;color:var(--gray);white-space:pre-wrap;max-height:150px;overflow-y:auto"><strong>Défaut :</strong>\n${esc(ctx)}</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary btn-sm" data-save-prompt="ctx_${t}">💾 Enregistrer</button>
+            ${isCustom ? `<button class="btn btn-danger btn-sm" data-reset-prompt="ctx_${t}">↩ Réinitialiser</button>` : ''}
+          </div>
+        </div>
+      </details>` : ''}
+    </div>`;
+    }).join('')}
+  </div>
+
 </div>`;
 }
 
@@ -1964,7 +2146,8 @@ async function regenBloc(key) {
   if (!db.apiKey) { showToast('Clé API manquante.', 'err'); return; }
   const csv = produitsToCSV(comp.produits);
   const modeles = comp.produits.map(p => `${p.marque} ${p.nom}`).join(', ');
-  const sys = callPrompt('sys', {});
+  const themCtx = db.customPrompts?.['ctx_' + comp.thematique] || THEMATIQUE_CONTEXT[comp.thematique] || '';
+  const sys = callPrompt('sys', {}) + (themCtx ? '\n\n' + themCtx : '');
   setBlocStatus(comp, key, 'generating');
   saveDB(); render();
   try {
