@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparatif Running — Générateur</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#03CAA1;--green-dark:#02b59a;--dark:#0f172a;--gray:#64748b;
+  --gray-border:#e2e8f0;--bg:#f8fafc;--white:#fff;--red:#ef4444;
+  --yellow:#f59e0b;--radius:12px;--sidebar:240px;
+}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--dark);display:flex;min-height:100vh;font-size:14px}
+a{color:var(--green);text-decoration:none}
+/* Sidebar */
+#sidebar{width:var(--sidebar);background:var(--dark);color:#fff;display:flex;flex-direction:column;padding:16px;gap:4px;position:fixed;height:100vh;overflow-y:auto;z-index:10}
+#sidebar .logo{font-size:18px;font-weight:800;padding:12px 8px 20px;color:var(--green)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:none;background:none;color:#94a3b8;width:100%;text-align:left;font-size:13px;font-weight:500;transition:all .15s}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:rgba(3,202,161,.15);color:var(--green)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.nav-sep{height:1px;background:rgba(255,255,255,.1);margin:8px 0}
+.nav-section{font-size:11px;color:#475569;padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.05em}
+/* Main */
+#main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.page-header{padding:24px 32px 0;border-bottom:1px solid var(--gray-border);background:var(--white)}
+.page-header h1{font-size:22px;font-weight:800;margin-bottom:4px}
+.page-header p{color:var(--gray);font-size:13px;padding-bottom:16px}
+.page-content{padding:24px 32px;flex:1}
+/* Cards */
+.card{background:var(--white);border:1px solid var(--gray-border);border-radius:var(--radius);padding:20px}
+.card+.card{margin-top:16px}
+.card-title{font-size:15px;font-weight:700;margin-bottom:12px}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;text-decoration:none}
+.btn-primary{background:var(--green);color:#083b33}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-secondary{background:var(--gray-border);color:var(--dark)}
+.btn-secondary:hover{background:#cbd5e1}
+.btn-danger{background:#fee2e2;color:var(--red)}
+.btn-danger:hover{background:#fecaca}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-ghost{background:none;color:var(--gray);border:1px solid var(--gray-border)}
+.btn-ghost:hover{background:var(--bg)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+/* Forms */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--gray);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.form-input{width:100%;padding:8px 12px;border:1px solid var(--gray-border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);color:var(--dark);transition:border-color .15s}
+.form-input:focus{outline:none;border-color:var(--green)}
+select.form-input{cursor:pointer}
+textarea.form-input{resize:vertical;min-height:80px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--white);border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;padding:24px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h2{font-size:17px;font-weight:800}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--gray);font-size:20px;line-height:1;padding:4px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-border)}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(3,202,161,.12);color:#035e4d}
+.badge-yellow{background:#fef3c7;color:#92400e}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-gray{background:#f1f5f9;color:#475569}
+.badge-blue{background:#dbeafe;color:#1e40af}
+/* Status dot */
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot-pending{background:#cbd5e1}
+.dot-generating{background:var(--yellow);animation:pulse 1s infinite}
+.dot-generated{background:#60a5fa}
+.dot-edited{background:var(--yellow)}
+.dot-validated{background:var(--green)}
+.dot-error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* Progress */
+.progress-bar-bg{height:6px;background:var(--gray-border);border-radius:999px;overflow:hidden;margin:16px 0}
+.progress-bar-fill{height:100%;background:var(--green);border-radius:999px;transition:width .4s ease}
+.step-list{display:flex;flex-direction:column;gap:8px}
+.step-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--gray-border)}
+.step-row.active{border-color:var(--green);background:rgba(3,202,161,.05)}
+.step-row.done{opacity:.7}
+.step-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.step-dot.pending{background:var(--gray-border);color:var(--gray)}
+.step-dot.active{background:var(--green);color:#fff;animation:pulse 1s infinite}
+.step-dot.done{background:rgba(3,202,161,.15);color:var(--green)}
+.step-dot.error{background:#fee2e2;color:var(--red)}
+/* Product card list */
+.product-list{display:flex;flex-direction:column;gap:8px}
+.product-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border:1px solid var(--gray-border);border-radius:10px;cursor:grab}
+.product-item:active{cursor:grabbing}
+.product-item img{width:48px;height:48px;object-fit:contain;border-radius:6px;background:#fff;border:1px solid var(--gray-border)}
+.product-item-info{flex:1}
+.product-item-name{font-weight:700;font-size:13px}
+.product-item-meta{font-size:12px;color:var(--gray)}
+.product-item-actions{display:flex;gap:6px}
+/* Tabs */
+.tabs{display:flex;gap:2px;background:var(--bg);border:1px solid var(--gray-border);border-radius:10px;padding:3px;margin-bottom:20px}
+.tab-btn{flex:1;padding:8px;border:none;background:none;cursor:pointer;border-radius:7px;font-size:13px;font-weight:600;color:var(--gray);transition:all .15s}
+.tab-btn.active{background:var(--white);color:var(--dark);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+/* Split view */
+.split-view{display:grid;grid-template-columns:1fr 1fr;gap:16px;height:500px}
+.split-pane{display:flex;flex-direction:column;gap:8px}
+.split-pane label{font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase}
+.split-pane iframe,.split-pane textarea{flex:1;width:100%;border:1px solid var(--gray-border);border-radius:8px;resize:none;font-size:12px;font-family:monospace;padding:10px}
+/* Checks */
+.check-list{display:flex;flex-direction:column;gap:6px}
+.check-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px}
+.check-item.ok{background:rgba(3,202,161,.07);color:#035e4d}
+.check-item.warn{background:#fef3c7;color:#92400e}
+.check-item.err{background:#fee2e2;color:#991b1b}
+/* Blocs overview table */
+.blocs-table{width:100%;border-collapse:collapse;font-size:13px}
+.blocs-table th{text-align:left;padding:8px 10px;background:var(--bg);border-bottom:2px solid var(--gray-border);font-size:11px;text-transform:uppercase;color:var(--gray);white-space:nowrap}
+.blocs-table td{padding:8px 10px;border-bottom:1px solid var(--gray-border);vertical-align:middle}
+.blocs-table tr:hover td{background:var(--bg)}
+.bloc-cell{display:flex;align-items:center;gap:6px}
+.bloc-dot-btn{cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:6px;border:1px solid var(--gray-border);font-size:11px;background:var(--white);transition:all .15s}
+.bloc-dot-btn:hover{border-color:var(--green)}
+/* Stats */
+.stats-row{display:flex;gap:12px;flex-wrap:wrap}
+.stat-card{flex:1;min-width:120px;padding:14px 16px;background:var(--white);border:1px solid var(--gray-border);border-radius:10px}
+.stat-card .val{font-size:24px;font-weight:800;color:var(--green)}
+.stat-card .lbl{font-size:12px;color:var(--gray);margin-top:2px}
+/* Placeholder list */
+.placeholder-list{display:flex;flex-direction:column;gap:6px}
+.placeholder-row{display:flex;align-items:center;gap:8px}
+.placeholder-row .ph-key{font-size:12px;font-family:monospace;background:var(--bg);border:1px solid var(--gray-border);border-radius:6px;padding:4px 8px;white-space:nowrap;min-width:200px}
+.placeholder-row .form-input{flex:1}
+/* Home grid */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.comp-card{background:var(--white);border:1px solid var(--gray-border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
+.comp-card:hover{border-color:var(--green);box-shadow:0 4px 12px rgba(3,202,161,.15)}
+.comp-card-title{font-weight:700;font-size:15px;margin-bottom:6px}
+.comp-card-meta{font-size:12px;color:var(--gray);display:flex;gap:10px;flex-wrap:wrap}
+/* Checkboxes */
+.checkbox-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.checkbox-item{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px}
+.checkbox-item input{accent-color:var(--green)}
+/* Alert */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:12px}
+.alert-info{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.alert-warn{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+/* Settings page */
+.settings-section{margin-bottom:24px}
+.settings-section h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--gray);text-transform:uppercase;font-size:11px;letter-spacing:.05em}
+/* Responsive */
+@media(max-width:768px){
+  #sidebar{width:200px}
+  #main{margin-left:200px}
+  .form-grid,.form-grid-3{grid-template-columns:1fr}
+  .split-view{grid-template-columns:1fr;height:auto}
+}
+/* Drag ghost */
+.product-item.dragging{opacity:.4}
+/* Empty state */
+.empty-state{text-align:center;padding:48px 24px;color:var(--gray)}
+.empty-state h3{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--dark)}
+</style>
+</head>
+<body>
+<div id="sidebar"></div>
+<div id="main"></div>
+<div id="modal-root"></div>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const DB_KEY = 'comparatif_running_db';
+const WP_SITES = {
+  'Run Evasion': { url: 'https://run-evasion.fr', postType: 'blc-product-review' },
+  'Epop Trail':  { url: 'https://epoptrail.fr',  postType: 'blc-product-review' }
+};
+const THEMATIQUES = ['general','par-marque','par-budget','par-profil','marathon','debutant'];
+const THEMATIQUE_LABELS = {general:'Général',`par-marque`:'Par marque','par-budget':'Par budget','par-profil':'Par profil',marathon:'Marathon',debutant:'Débutant'};
+const MARQUES = ['Adidas','Asics','Brooks','Hoka','Mizuno','New Balance','Nike','On Running','Puma','Salomon','Saucony','Under Armour','Altra','Decathlon'];
+const USAGES_LIST = ['Footing','Endurance','Tempo','Sorties longues','Marathon','Récupération','Compétition'];
+const STEP_LABELS = [
+  'Introduction + Méthodologie','Tableau HTML triable','Fiches produit (×N)','Blocs image (local)',
+  'Paragraphes descriptifs (×N)','Blocs CTA (local)','Maillage interne (×N)',
+  'Sections éducatives','Conclusion + Top 3','FAQ HTML'
+];
+
+// ─── TEMPLATES ───────────────────────────────────────────────────────────────
+const TEMPLATE_TABLEAU_CSS = `.cc-table-card{width:min(1100px,100%);background:#fff;border-radius:14px;box-shadow:0 12px 30px rgba(2,6,23,.08);overflow:hidden;border:1px solid #e9eef5;margin:0 auto}.cc-table-scroll{overflow:auto;max-height:70vh;-webkit-overflow-scrolling:touch}table.cc-table{width:100%;border-collapse:collapse;table-layout:auto;font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;color:#0f172a;background:#fff}.cc-table th,.cc-table td{padding:12px;text-align:left;white-space:nowrap}.cc-table thead th{position:sticky;top:0;z-index:2;background:linear-gradient(180deg,#03CAA1,#02b59a);color:#fff;font-weight:700;letter-spacing:.2px;cursor:pointer;user-select:none;border-bottom:1px solid rgba(0,0,0,.12)}.cc-th-inner{display:inline-flex;align-items:center;gap:8px}.cc-sort-icon{width:14px;height:14px;opacity:.8;transition:transform .18s ease}.cc-table thead th[aria-sort="ascending"] .cc-sort-icon{transform:rotate(180deg)}.cc-table tbody tr:nth-child(even){background:#f8fafc}.cc-table tbody tr:hover{background:#f0fbf8}.cc-is-sorted{box-shadow:inset 0 -2px 0 0 #03CAA1}.cc-link{color:#03CAA1;font-weight:600;text-decoration:none;border-bottom:1px dashed rgba(3,202,161,.6)}.cc-link:hover{text-decoration:underline}.cc-copy{margin-left:8px;border:none;background:#f3f4f6;color:#0f172a;border-radius:8px;padding:6px;cursor:pointer}.cc-copy:hover{background:#e5e7eb}.cc-copy[aria-pressed="true"]{background:#03CAA1;color:#fff}.cc-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;font-weight:700;font-size:12px}.cc-badge-score{background:rgba(3,202,161,.14);color:#035e4d}.cc-badge-price{background:#eef2f7;color:#334155}@media(max-width:720px){.cc-table{min-width:640px;font-size:13px}.cc-table th,.cc-table td{padding:10px}}`;
+
+const TEMPLATE_FAQ_CSS = `:root{--re-accent:#00C69D}*{box-sizing:border-box}.re-faq{background:#fff;border-radius:14px;padding:10px;box-shadow:0 8px 24px rgba(2,8,23,.06);border:1px solid #E8EDF2}.re-faq__title{font-size:1.05rem;font-weight:800;margin:8px 8px 12px;text-align:center}.re-faq__item{border:1px solid #E8EDF2;border-left:4px solid transparent;border-radius:12px;overflow:hidden;background:#fff;margin:12px 8px;transition:border-color .2s ease,box-shadow .2s ease}.re-faq__item[open]{border-left-color:var(--re-accent);box-shadow:0 4px 14px rgba(0,0,0,.06)}.re-faq__item summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;font-weight:800;color:#0F172A}.re-faq__item summary::-webkit-details-marker{display:none}.re-faq__item summary::after{content:"▾";font-size:18px;line-height:1;transition:transform .25s ease;color:var(--re-accent)}.re-faq__item[open] summary::after{transform:rotate(180deg)}.re-faq__item summary h3{margin:0;font-weight:800;flex:1}.re-faq__content{padding:14px 18px 18px;background:#fff;border-top:1px solid #EEF2F6;color:#334155}.re-faq__content p{margin:0 0 10px}.re-faq a{color:var(--re-accent);text-decoration:underline}`;
+
+// ─── PROMPTS ─────────────────────────────────────────────────────────────────
+const SYS_COMP = `Tu es un rédacteur expert spécialisé en running et chaussures de course à pied. Tu rédiges des comparatifs pour le blog Run Evasion. Ton ton est expert mais accessible. Règles : mots clés importants en <strong>, max 10 <strong> par paragraphe, format WordPress (<!-- wp:paragraph -->, <!-- wp:heading -->), pas de majuscule après les deux-points, pas de majuscule à chaque mot dans les titres. Génère uniquement du HTML WordPress valide, aucun commentaire ni markdown en dehors des balises wp.`;
+
+const DEFAULT_PROMPTS = {
+  sys: SYS_COMP,
+  p_intro: (titre, csv, nb) => `Rédige l'introduction et la section méthodologie pour un comparatif intitulé "${titre}" comparant ${nb} modèles de chaussures de running.
+
+Voici les produits en CSV :
+${csv}
+
+Structure à produire (format WordPress) :
+1. Un bloc <!-- wp:paragraph --> d'accroche (2-3 phrases percutantes sur le sujet)
+2. Un bloc <!-- wp:heading {"level":2} --> "Comment nous avons sélectionné ces modèles"
+3. 2-3 blocs <!-- wp:paragraph --> expliquant la méthodologie (critères : note, rapport qualité/prix, profils utilisateurs, tests terrain)
+4. Un bloc <!-- wp:heading {"level":2} --> "Résumé rapide"
+5. Un bloc <!-- wp:paragraph --> résumant les meilleurs choix par profil
+
+Génère uniquement le HTML WordPress, sans markdown autour.`,
+
+  p_tableau: (csv, template_css) => `Génère le tableau HTML comparatif triable pour ces chaussures de running.
+
+Données CSV :
+${csv}
+
+Template CSS à utiliser (copie exactement ce CSS dans un bloc <style>) :
+${template_css}
+
+Instructions :
+- Crée un bloc <!-- wp:html --> complet avec <style>, <div class="cc-table-card">, <table class="cc-table" data-initial-sort="1:desc">, le tbody avec une ligne par produit, et le <script> de tri
+- Pour chaque produit : colonne Modèle (marque + nom), Note (badge cc-badge-score), Prix (badge cc-badge-price), Meilleure offre (lien cc-link vers urlAffilie + bouton cc-copy)
+- Inclus le script JS de tri complet (collator fr, parseNumber, initTable)
+- Ferme avec <!-- /wp:html -->`,
+
+  p_fiche: (nom, marque, csv_produit, template_css) => `Génère la fiche produit HTML complète pour la ${marque} ${nom}.
+
+Données du produit :
+${csv_produit}
+
+Utilise exactement le template CSS des fiches produit (variables CSS --accent #01C59D, design card avec image + partenaire + contenu). Structure :
+- <!-- wp:html -->
+- <article class="product-block"> avec <style> inline complet
+- grid : media | partner | content
+- Inclus : titre, prix, note étoiles (CSS gradient), specs (poids/drop/mousse), chips usage, pros/cons, bouton "Voir le test" si urlTest présent
+- JSON-LD Product complet (name, brand, image, description, aggregateRating, offers)
+- <!-- /wp:html -->
+
+Pour la description courte du JSON-LD, synthétise en 1 phrase les points forts.`,
+
+  p_paragraphe: (nom, marque, csv_produit) => `Rédige un paragraphe descriptif de 150-200 mots pour la ${marque} ${nom} dans un comparatif de chaussures de running.
+
+Données :
+${csv_produit}
+
+Format :
+<!-- wp:heading {"level":2} -->
+<h2 class="wp-block-heading">${marque} ${nom} : [sous-titre accrocheur]</h2>
+<!-- /wp:heading -->
+<!-- wp:paragraph -->
+<p>[Paragraphe descriptif avec points forts en <strong>, usage idéal, verdict]</p>
+<!-- /wp:paragraph -->
+
+Commence directement par le bloc heading.`,
+
+  p_maillage: (nom, marque, articles) => `Génère un bloc de maillage interne pour la ${marque} ${nom} dans un comparatif running.
+
+Articles disponibles sur le site :
+${articles || 'Aucun article fourni - utilise des placeholders {{URL_TEST_MODELE}}, {{URL_COMPARATIF_MARQUE}}'}
+
+Génère un bloc <!-- wp:paragraph --> avec 2-3 liens internes naturels vers des articles connexes. Si les URLs ne sont pas connues, utilise des placeholders entre {{doubles accolades}} que l'utilisateur remplacera.
+Exemple : <a href="{{URL_TEST_ASICS_GT2000}}">notre test complet de l'Asics GT-2000</a>
+
+Format : <!-- wp:paragraph --><p>...</p><!-- /wp:paragraph -->`,
+
+  p_educatif: (csv, modeles) => `Rédige 2-3 sections éducatives pour un comparatif de chaussures de running.
+
+Modèles comparés : ${modeles}
+CSV complet : ${csv}
+
+Sections à rédiger (format WordPress) :
+1. <!-- wp:heading {"level":2} --> "Comment choisir ses chaussures de running ?"
+   - 3-4 paragraphes sur : type de foulée, terrain, distance, budget
+2. <!-- wp:heading {"level":2} --> "Tableau des profils et recommandations"
+   - Un paragraphe par profil : débutant, régulier, compétiteur, trail
+3. <!-- wp:heading {"level":2} --> "Les critères techniques à connaître"
+   - Drop, mousse, poids, stabilité : explications accessibles
+
+Génère uniquement les blocs WordPress, sans markdown autour.`,
+
+  p_conclusion: (csv) => `Rédige la conclusion et le top 3 pour ce comparatif de chaussures de running.
+
+CSV des produits (trié par note décroissante) :
+${csv}
+
+Structure :
+1. <!-- wp:heading {"level":2} --> "Notre verdict final"
+2. <!-- wp:paragraph --> Synthèse de 100 mots
+3. <!-- wp:heading {"level":2} --> "Top 3 de notre sélection"
+4. Pour chaque position du podium : <!-- wp:heading {"level":3} --> + <!-- wp:paragraph --> avec justification
+5. <!-- wp:paragraph --> Phrase de clôture avec appel à l'action
+
+Utilise les vraies données du CSV pour le podium. Génère uniquement les blocs WordPress.`,
+
+  p_faq: (titre, modeles, template_css) => `Génère une FAQ HTML complète pour le comparatif "${titre}".
+
+Modèles inclus : ${modeles}
+
+CSS à utiliser (copie dans <style>) :
+${template_css}
+
+Génère exactement 6 questions/réponses pertinentes sur :
+1. Comment choisir entre ces modèles
+2. Quel modèle pour quel profil de coureur
+3. Question sur le drop ou la mousse
+4. Question sur le prix / rapport qualité-prix
+5. Question sur la durabilité ou l'entretien
+6. Question sur les sites où acheter
+
+Format :
+<!-- wp:html -->
+<style>[CSS]</style>
+<h2>FAQ : ${titre}</h2>
+<section class="re-faq" aria-label="FAQ ${titre}">
+  <details class="re-faq__item">
+    <summary><h3>[Question]</h3></summary>
+    <div class="re-faq__content"><p>[Réponse détaillée]</p></div>
+  </details>
+  ... (6 items)
+</section>
+<!-- /wp:html -->`
+};
+
+// ─── DB ───────────────────────────────────────────────────────────────────────
+function loadDB() {
+  try {
+    return JSON.parse(localStorage.getItem(DB_KEY)) || defaultDB();
+  } catch { return defaultDB(); }
+}
+function defaultDB() {
+  return { apiKey: '', wpCreds: {}, comparatifs: [], customPrompts: {} };
+}
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+let db = loadDB();
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const state = {
+  page: 'home',
+  compId: null,
+  reviewTab: 0,
+  currentBlockKey: null,  // 'intro'|'tableau'|'educatif'|'conclusion'|'faq'|'fiches:1'|...
+  stepStatus: Array(10).fill('pending'),  // for progress page
+  generating: false,
+  toast: null,
+};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid() { return Date.now() + Math.random().toString(36).slice(2); }
+function wordCount(html) { return (html||'').replace(/<[^>]+>/g,' ').split(/\s+/).filter(Boolean).length; }
+function getComp() { return db.comparatifs.find(c => c.id === state.compId) || null; }
+
+function showToast(msg, type='ok') {
+  state.toast = { msg, type };
+  render();
+  setTimeout(() => { state.toast = null; render(); }, 3000);
+}
+
+function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast('Copié dans le presse-papiers !'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Copié !');
+  }
+}
+
+function produitsToCSV(produits) {
+  const cols = ['nom','marque','prix','note','poids','drop','mousse','usages','pointFort1','pointFort2','pointFaible','urlAffilie','urlTest'];
+  const header = cols.join(',');
+  const rows = produits.map(p => cols.map(k => {
+    const v = k === 'usages' ? (p.usages||[]).join('|') : (p[k]||'');
+    return `"${String(v).replace(/"/g,'""')}"`;
+  }).join(','));
+  return [header, ...rows].join('\n');
+}
+
+function produitToCSV(p) {
+  const cols = ['nom','marque','prix','note','poids','drop','mousse','usages','pointFort1','pointFort2','pointFaible','urlAffilie','urlTest'];
+  const header = cols.join(',');
+  const row = cols.map(k => {
+    const v = k === 'usages' ? (p.usages||[]).join('|') : (p[k]||'');
+    return `"${String(v).replace(/"/g,'""')}"`;
+  }).join(',');
+  return header + '\n' + row;
+}
+
+function newBlocs(produits) {
+  const blocs = {
+    intro:{ html:'', status:'pending' }, tableau:{ html:'', status:'pending' },
+    educatif:{ html:'', status:'pending' }, conclusion:{ html:'', status:'pending' },
+    faq:{ html:'', status:'pending' },
+    fiches:{}, images:{}, paragraphes:{}, cta:{}, maillage:{}
+  };
+  produits.forEach(p => {
+    blocs.fiches[p.id] = { html:'', status:'pending' };
+    blocs.images[p.id] = { html:'', status:'pending' };
+    blocs.paragraphes[p.id] = { html:'', status:'pending' };
+    blocs.cta[p.id] = { html:'', status:'pending' };
+    blocs.maillage[p.id] = { html:'', status:'pending', placeholders:{} };
+  });
+  return blocs;
+}
+
+function isProduitComplete(p) {
+  const required = ['nom','marque','prix','note','poids','drop','mousse','pointFort1','pointFort2','pointFaible','urlImage','urlAffilie'];
+  return required.every(k => p[k] !== undefined && p[k] !== '') && (p.usages||[]).length > 0;
+}
+
+function getPrompt(key) {
+  return db.customPrompts[key] || DEFAULT_PROMPTS[key];
+}
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+async function callClaude(system, prompt, model='claude-sonnet-4-5') {
+  const apiKey = db.apiKey;
+  if (!apiKey) throw new Error('Clé API Claude manquante. Va dans Paramètres.');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 8192,
+      system,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`API Claude erreur ${res.status}: ${err?.error?.message || res.statusText}`);
+  }
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+// ─── LOCAL GENERATORS ─────────────────────────────────────────────────────────
+function genImageBlock(p) {
+  return `<!-- wp:image {"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large">
+  <img src="${esc(p.urlImage)}" alt="${esc(p.marque)} ${esc(p.nom)} - test et avis" loading="lazy"/>
+  <figcaption>${esc(p.marque)} ${esc(p.nom)}</figcaption>
+</figure>
+<!-- /wp:image -->`;
+}
+
+function genCtaBlock(p) {
+  const href = (p.urlAffilie||'').replace(/&/g,'&amp;');
+  return `<!-- wp:columns {"verticalAlignment":"center","backgroundColor":"palette-color-5"} -->
+<div class="wp-block-columns are-vertically-aligned-center has-palette-color-5-background-color has-background"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><strong>Achetez la ${esc(p.marque)} ${esc(p.nom)} au meilleur prix</strong></p><!-- /wp:paragraph --></div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:buttons {"align":"wide","layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons alignwide"><!-- wp:button {"textAlign":"center"} --><div class="wp-block-button"><a class="wp-block-button__link has-text-align-center wp-element-button" href="${href}" target="_blank" rel="nofollow noreferrer noopener">Voir les meilleures offres</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:column --></div><!-- /wp:columns -->`;
+}
+
+// ─── PIPELINE ─────────────────────────────────────────────────────────────────
+async function runCompSteps(compId) {
+  const comp = db.comparatifs.find(c => c.id === compId);
+  if (!comp) return;
+  state.generating = true;
+  state.stepStatus = Array(10).fill('pending');
+  comp.status = 'generating';
+  saveDB(); render();
+
+  const pr = DEFAULT_PROMPTS;
+  const csv = produitsToCSV(comp.produits);
+  const modeles = comp.produits.map(p => `${p.marque} ${p.nom}`).join(', ');
+
+  function setStep(i, s) { state.stepStatus[i] = s; render(); }
+
+  try {
+    // Étape 1 : Intro
+    setStep(0, 'active');
+    comp.blocs.intro.html = await callClaude(pr.sys, pr.p_intro(comp.titre, csv, comp.produits.length));
+    comp.blocs.intro.status = 'generated';
+    setStep(0, 'done'); saveDB();
+
+    // Étape 2 : Tableau
+    setStep(1, 'active');
+    comp.blocs.tableau.html = await callClaude(pr.sys, pr.p_tableau(csv, TEMPLATE_TABLEAU_CSS));
+    comp.blocs.tableau.status = 'generated';
+    setStep(1, 'done'); saveDB();
+
+    // Étapes 3+4+5+6+7 : par produit
+    const batchSize = 3;
+    const produits = comp.produits;
+
+    setStep(2, 'active'); setStep(3, 'active'); setStep(4, 'active'); setStep(5, 'active'); setStep(6, 'active');
+
+    for (let i = 0; i < produits.length; i += batchSize) {
+      const batch = produits.slice(i, i + batchSize);
+      await Promise.all(batch.map(async p => {
+        const csvP = produitToCSV(p);
+        // Fiche (3)
+        comp.blocs.fiches[p.id].html = await callClaude(pr.sys, pr.p_fiche(p.nom, p.marque, csvP, ''));
+        comp.blocs.fiches[p.id].status = 'generated';
+        // Image (4) — local
+        comp.blocs.images[p.id].html = genImageBlock(p);
+        comp.blocs.images[p.id].status = 'generated';
+        // Paragraphe (5)
+        comp.blocs.paragraphes[p.id].html = await callClaude(pr.sys, pr.p_paragraphe(p.nom, p.marque, csvP));
+        comp.blocs.paragraphes[p.id].status = 'generated';
+        // CTA (6) — local
+        comp.blocs.cta[p.id].html = genCtaBlock(p);
+        comp.blocs.cta[p.id].status = 'generated';
+        // Maillage (7) — Haiku
+        const articles = (comp.articlesInternes||[]).map(a => `${a.titre} : ${a.url}`).join('\n');
+        comp.blocs.maillage[p.id].html = await callClaude(pr.sys, pr.p_maillage(p.nom, p.marque, articles), 'claude-haiku-4-5');
+        comp.blocs.maillage[p.id].status = 'generated';
+        // Detect placeholders
+        const matches = comp.blocs.maillage[p.id].html.match(/\{\{[^}]+\}\}/g) || [];
+        const phObj = {};
+        matches.forEach(m => { phObj[m] = ''; });
+        comp.blocs.maillage[p.id].placeholders = phObj;
+      }));
+      saveDB(); render();
+    }
+    setStep(2,'done'); setStep(3,'done'); setStep(4,'done'); setStep(5,'done'); setStep(6,'done');
+
+    // Étape 8 : Éducatif
+    setStep(7, 'active');
+    comp.blocs.educatif.html = await callClaude(pr.sys, pr.p_educatif(csv, modeles));
+    comp.blocs.educatif.status = 'generated';
+    setStep(7, 'done'); saveDB();
+
+    // Étape 9 : Conclusion
+    setStep(8, 'active');
+    const csvSorted = produitsToCSV([...comp.produits].sort((a,b)=>b.note-a.note));
+    comp.blocs.conclusion.html = await callClaude(pr.sys, pr.p_conclusion(csvSorted));
+    comp.blocs.conclusion.status = 'generated';
+    setStep(8, 'done'); saveDB();
+
+    // Étape 10 : FAQ
+    setStep(9, 'active');
+    comp.blocs.faq.html = await callClaude(pr.sys, pr.p_faq(comp.titre, modeles, TEMPLATE_FAQ_CSS));
+    comp.blocs.faq.status = 'generated';
+    setStep(9, 'done'); saveDB();
+
+    comp.status = 'review';
+    state.generating = false;
+    saveDB();
+    state.page = 'comp-review';
+    state.reviewTab = 0;
+    showToast('Génération terminée ! Passez en révision.');
+    render();
+  } catch(e) {
+    state.generating = false;
+    comp.status = 'draft';
+    state.stepStatus[state.stepStatus.findIndex(s => s === 'active')] = 'error';
+    saveDB(); render();
+    showToast('Erreur : ' + e.message, 'err');
+  }
+}
+
+// ─── ASSEMBLE ────────────────────────────────────────────────────────────────
+function assembleComparatif(comp) {
+  let html = '';
+  html += (comp.blocs.intro.html || '') + '\n';
+  html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">Top ${comp.produits.length} des meilleures chaussures de running</h2>\n<!-- /wp:heading -->\n`;
+  html += (comp.blocs.tableau.html || '') + '\n';
+  html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">Fiches &amp; avis détaillés</h2>\n<!-- /wp:heading -->\n`;
+  comp.produits.forEach(p => {
+    html += (comp.blocs.paragraphes[p.id]?.html || '') + '\n';
+    html += (comp.blocs.images[p.id]?.html || '') + '\n';
+    html += (comp.blocs.fiches[p.id]?.html || '') + '\n';
+    html += (comp.blocs.maillage[p.id]?.html || '') + '\n';
+    html += (comp.blocs.cta[p.id]?.html || '') + '\n';
+  });
+  html += (comp.blocs.educatif.html || '') + '\n';
+  html += (comp.blocs.conclusion.html || '') + '\n';
+  html += (comp.blocs.faq.html || '') + '\n';
+  return html;
+}
+
+// ─── COHERENCE CHECK ─────────────────────────────────────────────────────────
+function checkCompCoherence(comp) {
+  const alerts = [];
+  comp.produits.forEach(p => {
+    const tableauHtml = comp.blocs.tableau.html || '';
+    const ficheHtml = comp.blocs.fiches[p.id]?.html || '';
+    if (!ficheHtml) { alerts.push({ type:'error', msg:`Fiche manquante pour ${p.marque} ${p.nom}` }); return; }
+    if (!tableauHtml.includes(p.nom)) alerts.push({ type:'warning', msg:`${p.nom} : nom absent du tableau` });
+    if (!ficheHtml.includes(String(p.prix))) alerts.push({ type:'warning', msg:`${p.nom} : prix ${p.prix}€ absent de la fiche` });
+    if (!ficheHtml.includes(String(p.note))) alerts.push({ type:'warning', msg:`${p.nom} : note ${p.note} absente de la fiche` });
+    const ctaHtml = comp.blocs.cta[p.id]?.html || '';
+    if (p.urlAffilie && !ctaHtml.includes(p.urlAffilie.slice(0,30))) alerts.push({ type:'warning', msg:`${p.nom} : lien affilié absent du CTA` });
+    const maillageHtml = comp.blocs.maillage[p.id]?.html || '';
+    if (maillageHtml.includes('{{')) alerts.push({ type:'warning', msg:`${p.nom} : placeholders {{ }} non remplacés dans le maillage` });
+  });
+  // Check valid blocs
+  const globalBlocs = ['intro','tableau','educatif','conclusion','faq'];
+  globalBlocs.forEach(k => {
+    if (!comp.blocs[k]?.html) alerts.push({ type:'error', msg:`Bloc global "${k}" manquant` });
+  });
+  if (alerts.length === 0) alerts.push({ type:'ok', msg:'Aucun problème détecté — article prêt à assembler !' });
+  return alerts;
+}
+
+// ─── WORDPRESS PUSH ──────────────────────────────────────────────────────────
+async function pushCompToWordPress(comp, siteName) {
+  const creds = db.wpCreds?.[siteName];
+  if (!creds?.user) { alert('Configure les accès WordPress pour ' + siteName + ' dans Paramètres.'); return; }
+  const site = WP_SITES[siteName];
+  if (!site) { alert('Site inconnu : ' + siteName); return; }
+  const auth = 'Basic ' + btoa(creds.user + ':' + creds.password);
+  const articleHtml = comp.articleAssemble || assembleComparatif(comp);
+  try {
+    const res = await fetch(`${site.url}/wp-json/wp/v2/${site.postType}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': auth },
+      body: JSON.stringify({ title: comp.titre, content: articleHtml, status: 'draft' })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`Erreur ${res.status}: ${e?.message||res.statusText}`); }
+    comp.status = 'published';
+    saveDB(); render();
+    showToast('Brouillon créé sur ' + siteName + ' !');
+  } catch(e) {
+    showToast('Erreur WordPress : ' + e.message, 'err');
+  }
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+function downloadFile(content, filename, type='text/html') {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = filename; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ─── RENDER HELPERS ───────────────────────────────────────────────────────────
+function statusIcon(s) {
+  const map = { pending:'⚪', generating:'🔄', generated:'🔵', edited:'🟡', validated:'✅', error:'❌' };
+  return map[s] || '⚪';
+}
+function statusBadge(s) {
+  const map = {
+    pending:'<span class="badge badge-gray">En attente</span>',
+    generating:'<span class="badge badge-yellow">En cours…</span>',
+    generated:'<span class="badge badge-blue">Généré</span>',
+    edited:'<span class="badge badge-yellow">Modifié</span>',
+    validated:'<span class="badge badge-green">Validé</span>',
+    error:'<span class="badge badge-red">Erreur</span>'
+  };
+  return map[s] || `<span class="badge badge-gray">${s}</span>`;
+}
+const STATUS_BADGE_CLASS = {pending:'badge-gray',generating:'badge-yellow',generated:'badge-blue',edited:'badge-yellow',validated:'badge-green',error:'badge-red'};
+
+// ─── RENDER SIDEBAR ───────────────────────────────────────────────────────────
+function renderSidebar() {
+  const p = state.page;
+  return `
+<div class="logo">⚖️ Comparatif</div>
+<button class="nav-item ${p==='home'?'active':''}" data-page="home">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+  Accueil
+</button>
+<button class="nav-item ${p==='comp-new'?'active':''}" data-page="comp-new">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+  Nouveau comparatif
+</button>
+<div class="nav-sep"></div>
+<div class="nav-section">Paramètres</div>
+<button class="nav-item ${p==='settings'?'active':''}" data-page="settings">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+  Paramètres
+</button>`;
+}
+
+// ─── RENDER HOME ──────────────────────────────────────────────────────────────
+function renderHome() {
+  const comps = db.comparatifs || [];
+  const statusMap = { draft:'badge-gray', generating:'badge-yellow', review:'badge-blue', ready:'badge-green', published:'badge-green' };
+  const statusLabel = { draft:'Brouillon', generating:'En cours…', review:'En révision', ready:'Prêt', published:'Publié' };
+  return `
+<div class="page-header">
+  <h1>Mes comparatifs</h1>
+  <p>${comps.length} comparatif${comps.length!==1?'s':''} créé${comps.length!==1?'s':''}</p>
+</div>
+<div class="page-content">
+  ${comps.length===0 ? `
+    <div class="empty-state">
+      <div style="font-size:48px;margin-bottom:16px">⚖️</div>
+      <h3>Aucun comparatif pour l'instant</h3>
+      <p>Créez votre premier comparatif de chaussures de running !</p>
+      <br>
+      <button class="btn btn-primary" data-page="comp-new">+ Nouveau comparatif</button>
+    </div>
+  ` : `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+      <button class="btn btn-primary" data-page="comp-new">+ Nouveau comparatif</button>
+    </div>
+    <div class="comp-grid">
+      ${comps.map(c => `
+        <div class="comp-card" data-comp-id="${c.id}" data-action="open-comp">
+          <div class="comp-card-title">${esc(c.titre)}</div>
+          <div class="comp-card-meta">
+            <span>${c.produits?.length||0} produits</span>
+            <span>${c.date||''}</span>
+            <span><span class="badge ${statusMap[c.status]||'badge-gray'}">${statusLabel[c.status]||c.status}</span></span>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-sm btn-secondary" data-comp-id="${c.id}" data-action="continue-comp">Continuer</button>
+            <button class="btn btn-sm btn-danger" data-comp-id="${c.id}" data-action="delete-comp">Supprimer</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `}
+</div>`;
+}
+
+// ─── RENDER SETTINGS ──────────────────────────────────────────────────────────
+function renderSettings() {
+  const wc = db.wpCreds || {};
+  return `
+<div class="page-header">
+  <h1>Paramètres</h1>
+  <p>Configurez votre clé API et les accès WordPress</p>
+</div>
+<div class="page-content">
+  <div class="card">
+    <div class="card-title">🤖 API Claude (Anthropic)</div>
+    <div class="form-group">
+      <label class="form-label">Clé API</label>
+      <input type="password" class="form-input" id="s-apikey" value="${esc(db.apiKey||'')}" placeholder="sk-ant-api03-…">
+    </div>
+    <button class="btn btn-primary" id="s-save-api">Enregistrer la clé API</button>
+  </div>
+  <div class="card">
+    <div class="card-title">🌐 WordPress — Run Evasion</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Nom d'utilisateur</label>
+        <input class="form-input" id="s-wp-re-user" value="${esc(wc['Run Evasion']?.user||'')}" placeholder="admin">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe d'application</label>
+        <input type="password" class="form-input" id="s-wp-re-pass" value="${esc(wc['Run Evasion']?.password||'')}" placeholder="xxxx xxxx xxxx xxxx">
+      </div>
+    </div>
+    <button class="btn btn-primary" data-save-wp="Run Evasion">Enregistrer</button>
+  </div>
+  <div class="card">
+    <div class="card-title">🌐 WordPress — Epop Trail</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Nom d'utilisateur</label>
+        <input class="form-input" id="s-wp-et-user" value="${esc(wc['Epop Trail']?.user||'')}" placeholder="admin">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe d'application</label>
+        <input type="password" class="form-input" id="s-wp-et-pass" value="${esc(wc['Epop Trail']?.password||'')}" placeholder="xxxx xxxx xxxx xxxx">
+      </div>
+    </div>
+    <button class="btn btn-primary" data-save-wp="Epop Trail">Enregistrer</button>
+  </div>
+</div>`;
+}
+
+// ─── RENDER COMP NEW ─────────────────────────────────────────────────────────
+function renderCompNew() {
+  const compId = state.compId;
+  let comp = compId ? db.comparatifs.find(c => c.id === compId) : null;
+  if (!comp) {
+    comp = {
+      id: Date.now(), titre:'', thematique:'general', status:'draft',
+      date: new Date().toISOString().slice(0,10), targetSite:'Run Evasion',
+      produits:[], blocs:null, articleAssemble:'', articlesInternes:[]
+    };
+    db.comparatifs.unshift(comp);
+    state.compId = comp.id;
+    saveDB();
+  }
+  const allComplete = comp.produits.length >= 2 && comp.produits.every(isProduitComplete);
+  return `
+<div class="page-header">
+  <h1>Nouveau comparatif</h1>
+  <p>Saisissez les informations du comparatif et les produits à comparer</p>
+</div>
+<div class="page-content">
+  <div class="card">
+    <div class="card-title">Informations générales</div>
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Titre du comparatif</label>
+        <input class="form-input" id="cn-titre" value="${esc(comp.titre)}" placeholder="Meilleures chaussures de running 2026">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Thématique</label>
+        <select class="form-input" id="cn-thematique">
+          ${THEMATIQUES.map(t => `<option value="${t}" ${comp.thematique===t?'selected':''}>${THEMATIQUE_LABELS[t]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Site cible</label>
+        <select class="form-input" id="cn-site">
+          <option value="Run Evasion" ${comp.targetSite==='Run Evasion'?'selected':''}>Run Evasion</option>
+          <option value="Epop Trail" ${comp.targetSite==='Epop Trail'?'selected':''}>Epop Trail</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-secondary" id="cn-save-info">Enregistrer</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin:0">Produits (${comp.produits.length})</div>
+      <div style="display:flex;gap:8px">
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer">
+          📂 Importer CSV
+          <input type="file" accept=".csv" id="cn-csv-import" style="display:none">
+        </label>
+        <button class="btn btn-primary btn-sm" id="cn-add-product">+ Ajouter un produit</button>
+      </div>
+    </div>
+    ${comp.produits.length === 0 ? `
+      <div style="text-align:center;padding:32px;color:var(--gray);border:2px dashed var(--gray-border);border-radius:10px">
+        <div style="font-size:32px;margin-bottom:8px">👟</div>
+        <p>Ajoutez au moins 2 produits pour lancer la génération</p>
+      </div>
+    ` : `
+      <div class="product-list" id="cn-product-list">
+        ${comp.produits.map((p,i) => `
+          <div class="product-item" draggable="true" data-pid="${p.id}">
+            <span style="color:var(--gray);font-size:12px;cursor:grab">⠿</span>
+            ${p.urlImage ? `<img src="${esc(p.urlImage)}" alt="">` : `<div style="width:48px;height:48px;background:var(--bg);border-radius:6px;border:1px solid var(--gray-border);display:flex;align-items:center;justify-content:center;font-size:20px">👟</div>`}
+            <div class="product-item-info">
+              <div class="product-item-name">${esc(p.marque)} ${esc(p.nom)}</div>
+              <div class="product-item-meta">${p.prix}€ · Note : ${p.note}/5 · ${(p.usages||[]).join(', ')}</div>
+            </div>
+            <div style="margin-right:8px">${isProduitComplete(p) ? '<span class="badge badge-green">✓ Complet</span>' : '<span class="badge badge-yellow">Incomplet</span>'}</div>
+            <div class="product-item-actions">
+              <button class="btn btn-sm btn-ghost" data-edit-pid="${p.id}">✏️ Éditer</button>
+              <button class="btn btn-sm btn-danger" data-del-pid="${p.id}">🗑</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+    <button class="btn btn-secondary" data-page="home">Annuler</button>
+    <button class="btn btn-primary ${!allComplete?'disabled':''}" id="cn-launch" ${!allComplete?'disabled':''} title="${!allComplete?'Ajoutez au moins 2 produits complets':''}">
+      Lancer la génération →
+    </button>
+  </div>
+  ${!allComplete && comp.produits.length > 0 ? `<p style="text-align:right;color:var(--gray);font-size:12px;margin-top:6px">⚠️ Tous les produits doivent être complets (${comp.produits.filter(isProduitComplete).length}/${comp.produits.length} complets)</p>` : ''}
+</div>`;
+}
+
+// ─── PRODUCT MODAL ────────────────────────────────────────────────────────────
+function renderProductModal(pid) {
+  const comp = getComp();
+  const p = pid ? comp.produits.find(x => x.id === pid) : null;
+  const isNew = !p;
+  const v = p || { id:uid(), nom:'', marque:'', prix:'', note:'', poids:'', drop:'', mousse:'', usages:[], pointFort1:'', pointFort2:'', pointFaible:'', urlImage:'', urlAffilie:'', urlTest:'' };
+  return `
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>${isNew ? 'Ajouter un produit' : 'Éditer le produit'}</h2>
+      <button class="modal-close" id="close-product-modal">✕</button>
+    </div>
+    <input type="hidden" id="pm-pid" value="${v.id}">
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Nom du modèle *</label>
+        <input class="form-input" id="pm-nom" value="${esc(v.nom)}" placeholder="SuperBlast 2">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Marque *</label>
+        <select class="form-input" id="pm-marque">
+          <option value="">-- Choisir --</option>
+          ${MARQUES.map(m => `<option value="${m}" ${v.marque===m?'selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prix (€) *</label>
+        <input type="number" class="form-input" id="pm-prix" value="${v.prix}" min="0" step="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note /5 *</label>
+        <input type="number" class="form-input" id="pm-note" value="${v.note}" min="0" max="5" step="0.1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Poids (g) *</label>
+        <input type="number" class="form-input" id="pm-poids" value="${v.poids}" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Drop (mm) *</label>
+        <input type="number" class="form-input" id="pm-drop" value="${v.drop}" min="0" max="30">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mousse / Technologie *</label>
+      <input class="form-input" id="pm-mousse" value="${esc(v.mousse)}" placeholder="FFB Turbo">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Usages * (sélectionner au moins 1)</label>
+      <div class="checkbox-grid">
+        ${USAGES_LIST.map(u => `
+          <label class="checkbox-item">
+            <input type="checkbox" name="pm-usage" value="${u}" ${(v.usages||[]).includes(u)?'checked':''}> ${u}
+          </label>
+        `).join('')}
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Point fort 1 *</label>
+      <input class="form-input" id="pm-pf1" value="${esc(v.pointFort1)}" placeholder="Polyvalence et confort">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Point fort 2 *</label>
+      <input class="form-input" id="pm-pf2" value="${esc(v.pointFort2)}" placeholder="Légèreté record">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Point faible *</label>
+      <input class="form-input" id="pm-pfail" value="${esc(v.pointFaible)}" placeholder="Prix élevé">
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL image *</label>
+      <input type="url" class="form-input" id="pm-img" value="${esc(v.urlImage)}" placeholder="https://…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL affilié i-Run *</label>
+      <input type="url" class="form-input" id="pm-aff" value="${esc(v.urlAffilie)}" placeholder="https://fsx.i-run.fr/…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL test run-evasion.fr (optionnel)</label>
+      <input type="url" class="form-input" id="pm-test" value="${esc(v.urlTest)}" placeholder="https://run-evasion.fr/test/…">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="close-product-modal-2">Annuler</button>
+      <button class="btn btn-primary" id="pm-save" data-is-new="${isNew}">Enregistrer</button>
+    </div>
+  </div>
+</div>`;
+}
+
+// ─── RENDER COMP PROGRESS ─────────────────────────────────────────────────────
+function renderCompProgress() {
+  const comp = getComp();
+  if (!comp) return '<div class="page-content"><p>Comparatif introuvable.</p></div>';
+  const doneCount = state.stepStatus.filter(s=>s==='done').length;
+  const pct = Math.round(doneCount/10*100);
+  return `
+<div class="page-header">
+  <h1>Génération en cours</h1>
+  <p>${esc(comp.titre)} — ${comp.produits.length} produits</p>
+</div>
+<div class="page-content">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-weight:700">${doneCount}/10 étapes</span>
+      <span style="color:var(--gray)">${pct}%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    <div class="step-list">
+      ${STEP_LABELS.map((label,i) => {
+        const s = state.stepStatus[i];
+        return `
+        <div class="step-row ${s==='active'?'active':''} ${s==='done'?'done':''}">
+          <div class="step-dot ${s}">
+            ${s==='done'?'✓': s==='error'?'✕': s==='active'?'…': (i+1)}
+          </div>
+          <span>${label}</span>
+          <span style="margin-left:auto">${statusBadge(s==='active'?'generating': s==='done'?'validated': s==='error'?'error': 'pending')}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+  ${state.generating ? `<div class="alert alert-info" style="margin-top:16px">⏳ Génération en cours, ne fermez pas cette fenêtre…</div>` : ''}
+</div>`;
+}
+
+// ─── RENDER COMP REVIEW ───────────────────────────────────────────────────────
+function renderCompReview() {
+  const comp = getComp();
+  if (!comp) return '<div class="page-content"><p>Comparatif introuvable.</p></div>';
+  const tab = state.reviewTab;
+  return `
+<div class="page-header">
+  <h1>Révision — ${esc(comp.titre)}</h1>
+  <p>Relisez et validez chaque bloc avant l'assemblage</p>
+</div>
+<div class="page-content">
+  <div class="tabs">
+    <button class="tab-btn ${tab===0?'active':''}" data-review-tab="0">📋 Vue d'ensemble</button>
+    <button class="tab-btn ${tab===1?'active':''}" data-review-tab="1">✏️ Éditeur de bloc</button>
+    <button class="tab-btn ${tab===2?'active':''}" data-review-tab="2">🔗 Maillage interne</button>
+  </div>
+  ${tab===0 ? renderReviewOverview(comp) : ''}
+  ${tab===1 ? renderReviewEditor(comp) : ''}
+  ${tab===2 ? renderReviewMaillage(comp) : ''}
+</div>`;
+}
+
+function renderReviewOverview(comp) {
+  const globalBlocs = [
+    {key:'intro',label:'Introduction + Méthodologie'},
+    {key:'tableau',label:'Tableau triable'},
+    {key:'educatif',label:'Sections éducatives'},
+    {key:'conclusion',label:'Conclusion + Top 3'},
+    {key:'faq',label:'FAQ HTML'},
+  ];
+  let totalBlocs = globalBlocs.length + comp.produits.length * 5;
+  let validatedCount = 0;
+  globalBlocs.forEach(({key}) => { if(comp.blocs[key]?.status==='validated') validatedCount++; });
+  comp.produits.forEach(p => {
+    ['fiches','images','paragraphes','cta','maillage'].forEach(t => {
+      if(comp.blocs[t]?.[p.id]?.status==='validated') validatedCount++;
+    });
+  });
+
+  const allGlobalValidated = globalBlocs.every(({key}) => comp.blocs[key]?.status==='validated');
+  const allProdValidated = comp.produits.every(p => ['fiches','paragraphes','cta'].every(t => comp.blocs[t]?.[p.id]?.status==='validated'));
+  const canAssemble = allGlobalValidated && allProdValidated;
+
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div>
+      <span class="badge badge-green">${validatedCount}/${totalBlocs} validés</span>
+    </div>
+    <button class="btn btn-primary ${!canAssemble?'disabled':''}" id="go-assemble" ${!canAssemble?'disabled':''}>
+      Assembler l'article →
+    </button>
+  </div>
+  ${!canAssemble ? `<div class="alert alert-warn">Validez tous les blocs obligatoires (intro, tableau, fiches, paragraphes, CTA, éducatif, conclusion, FAQ) avant d'assembler.</div>` : ''}
+
+  <div class="card">
+    <div class="card-title">Blocs globaux</div>
+    <table class="blocs-table">
+      <thead><tr><th>Bloc</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${globalBlocs.map(({key,label}) => {
+          const bloc = comp.blocs[key];
+          return `<tr>
+            <td><strong>${label}</strong></td>
+            <td>${statusBadge(bloc?.status||'pending')}</td>
+            <td style="display:flex;gap:6px">
+              ${bloc?.html ? `<button class="btn btn-sm btn-ghost" data-view-bloc="${key}">👁 Voir</button>` : ''}
+              <button class="btn btn-sm btn-secondary" data-regen-bloc="${key}">🔄 Régénérer</button>
+              ${bloc?.status!=='validated' && bloc?.html ? `<button class="btn btn-sm btn-primary" data-validate-bloc="${key}">✅ Valider</button>` : ''}
+              ${bloc?.status==='validated' ? `<span class="badge badge-green">✅ Validé</span>` : ''}
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Blocs par produit</div>
+    <div style="overflow-x:auto">
+    <table class="blocs-table">
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th>Paragraphe</th>
+          <th>Image</th>
+          <th>Fiche</th>
+          <th>Maillage</th>
+          <th>CTA</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${comp.produits.map(p => {
+          const keys = ['paragraphes','images','fiches','maillage','cta'];
+          const labels = ['paragraphes','images','fiches','maillage','cta'];
+          return `<tr>
+            <td><strong>${esc(p.marque)}<br><span style="font-weight:400;font-size:12px">${esc(p.nom)}</span></strong></td>
+            ${keys.map(k => {
+              const bloc = comp.blocs[k]?.[p.id];
+              const bkey = `${k}:${p.id}`;
+              return `<td>
+                <div class="bloc-cell">
+                  <button class="bloc-dot-btn ${bloc?.html?'':'disabled'}" data-view-bloc="${bkey}" ${!bloc?.html?'disabled':''}>
+                    ${statusIcon(bloc?.status||'pending')} ${bloc?.status==='validated'?'✓':'👁'}
+                  </button>
+                  ${bloc?.status!=='validated' && bloc?.html ? `<button class="btn btn-sm btn-primary" style="font-size:11px;padding:3px 6px" data-validate-bloc="${bkey}">✅</button>` : ''}
+                </div>
+              </td>`;
+            }).join('')}
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+function renderReviewEditor(comp) {
+  const key = state.currentBlockKey;
+  if (!key) {
+    return `<div style="text-align:center;padding:48px;color:var(--gray)">
+      <p>Cliquez sur <strong>👁 Voir</strong> dans la vue d'ensemble pour ouvrir un bloc ici.</p>
+    </div>`;
+  }
+  let bloc;
+  if (key.includes(':')) {
+    const [type, pid] = key.split(':');
+    bloc = comp.blocs[type]?.[parseInt(pid)];
+  } else {
+    bloc = comp.blocs[key];
+  }
+  const html = bloc?.html || '';
+  const iframeContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:16px;font-family:system-ui,sans-serif;font-size:14px}*{max-width:100%}</style></head><body>${html}</body></html>`;
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-weight:700">Édition : <code style="background:var(--bg);padding:2px 6px;border-radius:4px">${key}</code></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm" data-review-tab="0">◀ Retour</button>
+      <button class="btn btn-secondary btn-sm" id="refresh-preview">🔄 Actualiser</button>
+      <button class="btn btn-secondary btn-sm" data-regen-bloc="${key}">♻️ Régénérer</button>
+      <button class="btn btn-primary btn-sm" data-validate-bloc="${key}">✅ Valider</button>
+    </div>
+  </div>
+  <div class="split-view">
+    <div class="split-pane">
+      <label>Prévisualisation</label>
+      <iframe id="bloc-preview" srcdoc="${esc(iframeContent)}" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+    <div class="split-pane">
+      <label>Code HTML</label>
+      <textarea class="form-input" id="bloc-editor" style="flex:1;font-size:12px;font-family:monospace">${esc(html)}</textarea>
+    </div>
+  </div>
+  <div style="margin-top:8px;color:var(--gray);font-size:12px">
+    ${wordCount(html)} mots — ${(html||'').length} caractères — Statut : ${statusBadge(bloc?.status||'pending')}
+  </div>`;
+}
+
+function renderReviewMaillage(comp) {
+  return `
+  <div class="card">
+    <div class="card-title">🔗 Maillage interne — Remplacement des placeholders</div>
+    <div class="form-group">
+      <label class="form-label">Articles internes disponibles (un par ligne : URL | Titre)</label>
+      <textarea class="form-input" id="articles-internes" rows="4" placeholder="https://run-evasion.fr/test/asics-gt2000/ | Test Asics GT-2000&#10;https://run-evasion.fr/test/hoka-clifton/ | Test Hoka Clifton">${(comp.articlesInternes||[]).map(a => `${a.url} | ${a.titre}`).join('\n')}</textarea>
+      <button class="btn btn-sm btn-secondary" id="save-articles-internes" style="margin-top:6px">Enregistrer</button>
+    </div>
+  </div>
+  ${comp.produits.map(p => {
+    const bloc = comp.blocs.maillage?.[p.id];
+    if (!bloc?.html) return '';
+    const phs = bloc.placeholders || {};
+    const phKeys = Object.keys(phs);
+    if (phKeys.length === 0) return `
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">${esc(p.marque)} ${esc(p.nom)} — <span class="badge badge-green">Aucun placeholder</span></div>
+      </div>`;
+    return `
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">${esc(p.marque)} ${esc(p.nom)} — ${phKeys.length} placeholder${phKeys.length>1?'s':''}</div>
+      <div class="placeholder-list">
+        ${phKeys.map(ph => `
+          <div class="placeholder-row">
+            <span class="ph-key">${esc(ph)}</span>
+            <input class="form-input" data-ph="${esc(ph)}" data-pid="${p.id}" value="${esc(phs[ph]||'')}" placeholder="URL de remplacement…">
+            <span style="font-size:16px">${phs[ph] ? '🟢' : '🟡'}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary btn-sm" data-apply-maillage="${p.id}">Appliquer</button>
+        <button class="btn btn-secondary btn-sm" data-clean-maillage="${p.id}">Supprimer liens vides</button>
+      </div>
+    </div>`;
+  }).join('')}`;
+}
+
+// ─── RENDER COMP ASSEMBLE ────────────────────────────────────────────────────
+function renderCompAssemble() {
+  const comp = getComp();
+  if (!comp) return '<div class="page-content"><p>Comparatif introuvable.</p></div>';
+
+  const alerts = checkCompCoherence(comp);
+  const articleHtml = assembleComparatif(comp);
+  comp.articleAssemble = articleHtml;
+  saveDB();
+
+  const wc = wordCount(articleHtml);
+  const linkCount = (articleHtml.match(/<a /gi)||[]).length;
+  const iframeContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:24px;font-family:system-ui,sans-serif;font-size:15px;line-height:1.6;max-width:900px;margin:auto}*{max-width:100%;box-sizing:border-box}</style></head><body>${articleHtml}</body></html>`;
+
+  return `
+<div class="page-header">
+  <h1>Assemblage — ${esc(comp.titre)}</h1>
+  <p>Vérifiez la cohérence, prévisualisez et exportez</p>
+</div>
+<div class="page-content">
+  <div class="stats-row" style="margin-bottom:16px">
+    <div class="stat-card"><div class="val">${wc}</div><div class="lbl">Mots</div></div>
+    <div class="stat-card"><div class="val">${comp.produits.length}</div><div class="lbl">Produits</div></div>
+    <div class="stat-card"><div class="val">${linkCount}</div><div class="lbl">Liens</div></div>
+    <div class="stat-card"><div class="val">${Math.round(articleHtml.length/1024)}Ko</div><div class="lbl">Taille HTML</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔍 Vérifications automatiques</div>
+    <div class="check-list">
+      ${alerts.map(a => `
+        <div class="check-item ${a.type==='ok'?'ok': a.type==='warning'?'warn': 'err'}">
+          <span>${a.type==='ok'?'✅': a.type==='warning'?'⚠️': '❌'}</span>
+          <span>${esc(a.msg)}</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin:0">👁 Prévisualisation</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-secondary" id="preview-desktop">🖥 Desktop</button>
+        <button class="btn btn-sm btn-secondary" id="preview-mobile">📱 Mobile</button>
+      </div>
+    </div>
+    <iframe id="full-preview" srcdoc="${esc(iframeContent)}" style="width:100%;min-height:600px;border:1px solid var(--gray-border);border-radius:8px" sandbox="allow-scripts allow-same-origin"></iframe>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">📤 Export</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="copy-wp">📋 Copier code WP</button>
+      <button class="btn btn-secondary" id="push-re">🚀 Push Run Evasion</button>
+      <button class="btn btn-secondary" id="export-html">⬇ Export HTML</button>
+      <button class="btn btn-secondary" id="export-json">⬇ Export JSON</button>
+    </div>
+  </div>
+
+  <div style="margin-top:16px">
+    <button class="btn btn-ghost" data-review-back>◀ Retour à la révision</button>
+  </div>
+</div>`;
+}
+
+// ─── RENDER COMP VIEW ────────────────────────────────────────────────────────
+function renderCompView() {
+  const comp = getComp();
+  if (!comp) return '<div class="page-content"><p>Comparatif introuvable.</p></div>';
+  const statusMap = { draft:'badge-gray', generating:'badge-yellow', review:'badge-blue', ready:'badge-green', published:'badge-green' };
+  const statusLabel = { draft:'Brouillon', generating:'En cours…', review:'En révision', ready:'Prêt', published:'Publié' };
+  return `
+<div class="page-header">
+  <h1>${esc(comp.titre)}</h1>
+  <p>Créé le ${comp.date} — ${comp.produits.length} produits — <span class="badge ${statusMap[comp.status]||'badge-gray'}">${statusLabel[comp.status]||comp.status}</span></p>
+</div>
+<div class="page-content">
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button class="btn btn-primary" data-action="go-review">✏️ Réviser</button>
+    <button class="btn btn-secondary" data-action="go-assemble">📦 Assembler</button>
+    <button class="btn btn-ghost" data-page="home">◀ Retour</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Produits (${comp.produits.length})</div>
+    <div class="product-list">
+      ${comp.produits.map(p => `
+        <div class="product-item" style="cursor:default">
+          ${p.urlImage ? `<img src="${esc(p.urlImage)}" alt="">` : `<div style="width:48px;height:48px;background:var(--bg);border-radius:6px;border:1px solid var(--gray-border);display:flex;align-items:center;justify-content:center">👟</div>`}
+          <div class="product-item-info">
+            <div class="product-item-name">${esc(p.marque)} ${esc(p.nom)}</div>
+            <div class="product-item-meta">${p.prix}€ · Note : ${p.note}/5 · ${(p.usages||[]).slice(0,3).join(', ')}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+</div>`;
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function renderToast() {
+  if (!state.toast) return '';
+  const color = state.toast.type === 'err' ? '#fee2e2' : 'rgba(3,202,161,.15)';
+  const border = state.toast.type === 'err' ? '#fca5a5' : 'rgba(3,202,161,.3)';
+  const textColor = state.toast.type === 'err' ? '#991b1b' : '#035e4d';
+  return `<div style="position:fixed;bottom:24px;right:24px;z-index:999;background:${color};border:1px solid ${border};color:${textColor};padding:12px 20px;border-radius:10px;font-weight:600;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-width:320px">${esc(state.toast.msg)}</div>`;
+}
+
+// ─── MAIN RENDER ─────────────────────────────────────────────────────────────
+function render() {
+  document.getElementById('sidebar').innerHTML = renderSidebar();
+  let content = '';
+  switch(state.page) {
+    case 'home':          content = renderHome(); break;
+    case 'settings':      content = renderSettings(); break;
+    case 'comp-new':      content = renderCompNew(); break;
+    case 'comp-progress': content = renderCompProgress(); break;
+    case 'comp-review':   content = renderCompReview(); break;
+    case 'comp-assemble': content = renderCompAssemble(); break;
+    case 'comp-view':     content = renderCompView(); break;
+    default:              content = renderHome();
+  }
+  document.getElementById('main').innerHTML = content;
+  document.getElementById('modal-root').innerHTML = '';
+  bind();
+  // Restore scroll
+  document.getElementById('main').scrollTop = 0;
+  // Toast
+  const toastEl = document.createElement('div');
+  toastEl.innerHTML = renderToast();
+  if (toastEl.firstChild) document.body.appendChild(toastEl.firstChild);
+}
+
+// ─── BIND ─────────────────────────────────────────────────────────────────────
+function bind() {
+  // Page navigation
+  document.querySelectorAll('[data-page]').forEach(el => {
+    el.addEventListener('click', () => {
+      const p = el.dataset.page;
+      if (p === 'comp-new') { state.compId = null; }
+      state.page = p; render();
+    });
+  });
+
+  // Home actions
+  document.querySelectorAll('[data-action="open-comp"]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.compId = parseInt(el.dataset.compId);
+      state.page = 'comp-view'; render();
+    });
+  });
+  document.querySelectorAll('[data-action="continue-comp"]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = parseInt(el.dataset.compId);
+      const comp = db.comparatifs.find(c => c.id === id);
+      state.compId = id;
+      if (comp.status === 'draft') state.page = 'comp-new';
+      else if (comp.status === 'review') { state.page = 'comp-review'; state.reviewTab = 0; }
+      else if (comp.status === 'ready' || comp.status === 'published') state.page = 'comp-assemble';
+      else state.page = 'comp-view';
+      render();
+    });
+  });
+  document.querySelectorAll('[data-action="delete-comp"]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('Supprimer ce comparatif ?')) return;
+      db.comparatifs = db.comparatifs.filter(c => c.id !== parseInt(el.dataset.compId));
+      saveDB(); render();
+    });
+  });
+
+  // Settings
+  const saveApiBtn = document.getElementById('s-save-api');
+  if (saveApiBtn) saveApiBtn.addEventListener('click', () => {
+    db.apiKey = document.getElementById('s-apikey').value.trim();
+    saveDB(); showToast('Clé API enregistrée !');
+  });
+  document.querySelectorAll('[data-save-wp]').forEach(el => {
+    el.addEventListener('click', () => {
+      const site = el.dataset.saveWp;
+      const prefix = site === 'Run Evasion' ? 're' : 'et';
+      if (!db.wpCreds) db.wpCreds = {};
+      db.wpCreds[site] = {
+        user: document.getElementById(`s-wp-${prefix}-user`).value.trim(),
+        password: document.getElementById(`s-wp-${prefix}-pass`).value.trim()
+      };
+      saveDB(); showToast(`WordPress ${site} enregistré !`);
+    });
+  });
+
+  // Comp New
+  const saveinfoBtn = document.getElementById('cn-save-info');
+  if (saveinfoBtn) saveinfoBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    comp.titre = document.getElementById('cn-titre').value.trim();
+    comp.thematique = document.getElementById('cn-thematique').value;
+    comp.targetSite = document.getElementById('cn-site').value;
+    saveDB(); showToast('Informations enregistrées !');
+  });
+
+  const addProdBtn = document.getElementById('cn-add-product');
+  if (addProdBtn) addProdBtn.addEventListener('click', () => {
+    document.getElementById('modal-root').innerHTML = renderProductModal(null);
+    bindModal();
+  });
+
+  document.querySelectorAll('[data-edit-pid]').forEach(el => {
+    el.addEventListener('click', () => {
+      document.getElementById('modal-root').innerHTML = renderProductModal(parseInt(el.dataset.editPid));
+      bindModal();
+    });
+  });
+
+  document.querySelectorAll('[data-del-pid]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (!confirm('Supprimer ce produit ?')) return;
+      const comp = getComp(); if (!comp) return;
+      comp.produits = comp.produits.filter(p => p.id !== parseInt(el.dataset.delPid));
+      saveDB(); render();
+    });
+  });
+
+  // CSV import
+  const csvInput = document.getElementById('cn-csv-import');
+  if (csvInput) csvInput.addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const lines = ev.target.result.split('\n').filter(l => l.trim());
+        const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+        const comp = getComp(); if (!comp) return;
+        lines.slice(1).forEach(line => {
+          const vals = line.match(/(".*?"|[^,]+)/g) || [];
+          const obj = { id: uid(), usages: [] };
+          headers.forEach((h,i) => {
+            const v = (vals[i]||'').replace(/^"|"$/g,'').trim();
+            if (h === 'usages') obj.usages = v.split('|').map(x=>x.trim()).filter(Boolean);
+            else if (['prix','note','poids','drop'].includes(h)) obj[h] = parseFloat(v)||0;
+            else obj[h] = v;
+          });
+          if (obj.nom) comp.produits.push(obj);
+        });
+        saveDB(); render(); showToast(`${lines.length-1} produits importés !`);
+      } catch(err) { showToast('Erreur CSV : ' + err.message, 'err'); }
+    };
+    reader.readAsText(file);
+  });
+
+  // Launch generation
+  const launchBtn = document.getElementById('cn-launch');
+  if (launchBtn) launchBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    if (!db.apiKey) { showToast('Configure ta clé API Claude dans Paramètres.', 'err'); return; }
+    // Save current info first
+    const titreEl = document.getElementById('cn-titre');
+    if (titreEl && !comp.titre) comp.titre = titreEl.value.trim();
+    if (!comp.titre) { showToast('Saisis un titre pour le comparatif.', 'err'); return; }
+    comp.blocs = newBlocs(comp.produits);
+    saveDB();
+    state.page = 'comp-progress';
+    state.stepStatus = Array(10).fill('pending');
+    render();
+    runCompSteps(comp.id);
+  });
+
+  // Drag & drop for product list
+  bindDragDrop();
+
+  // Review tabs
+  document.querySelectorAll('[data-review-tab]').forEach(el => {
+    el.addEventListener('click', () => { state.reviewTab = parseInt(el.dataset.reviewTab); render(); });
+  });
+
+  // View/validate blocs
+  document.querySelectorAll('[data-view-bloc]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.currentBlockKey = el.dataset.viewBloc;
+      state.reviewTab = 1; render();
+    });
+  });
+  document.querySelectorAll('[data-validate-bloc]').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.validateBloc;
+      const comp = getComp(); if (!comp) return;
+      // Save edited content if in editor
+      if (state.reviewTab === 1) {
+        const ta = document.getElementById('bloc-editor');
+        if (ta) {
+          const v = ta.value;
+          setBlocHtml(comp, key, v);
+        }
+      }
+      setBlocStatus(comp, key, 'validated');
+      saveDB(); render();
+    });
+  });
+
+  // Regen blocs
+  document.querySelectorAll('[data-regen-bloc]').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.regenBloc;
+      regenBloc(key);
+    });
+  });
+
+  // Editor refresh
+  const refreshBtn = document.getElementById('refresh-preview');
+  if (refreshBtn) refreshBtn.addEventListener('click', () => {
+    const ta = document.getElementById('bloc-editor');
+    const frame = document.getElementById('bloc-preview');
+    if (ta && frame) {
+      const html = ta.value;
+      const comp = getComp();
+      if (comp) setBlocHtml(comp, state.currentBlockKey, html);
+      saveDB();
+      const content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:16px;font-family:system-ui,sans-serif;font-size:14px}*{max-width:100%}</style></head><body>${html}</body></html>`;
+      frame.srcdoc = content;
+    }
+  });
+
+  // Go assemble from review
+  const goAssembleBtn = document.getElementById('go-assemble');
+  if (goAssembleBtn) goAssembleBtn.addEventListener('click', () => {
+    state.page = 'comp-assemble'; render();
+  });
+
+  // Review back
+  document.querySelectorAll('[data-review-back]').forEach(el => {
+    el.addEventListener('click', () => { state.page = 'comp-review'; state.reviewTab = 0; render(); });
+  });
+
+  // Assemble page
+  const copyWpBtn = document.getElementById('copy-wp');
+  if (copyWpBtn) copyWpBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    copyText(comp.articleAssemble || assembleComparatif(comp));
+  });
+  const pushReBtn = document.getElementById('push-re');
+  if (pushReBtn) pushReBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    pushCompToWordPress(comp, 'Run Evasion');
+  });
+  const exportHtmlBtn = document.getElementById('export-html');
+  if (exportHtmlBtn) exportHtmlBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(comp.titre)}</title></head><body>${comp.articleAssemble}</body></html>`;
+    downloadFile(html, comp.titre.replace(/\s+/g,'-').toLowerCase() + '.html');
+  });
+  const exportJsonBtn = document.getElementById('export-json');
+  if (exportJsonBtn) exportJsonBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    downloadFile(JSON.stringify(comp, null, 2), comp.titre.replace(/\s+/g,'-').toLowerCase() + '.json', 'application/json');
+  });
+  const previewDesktop = document.getElementById('preview-desktop');
+  if (previewDesktop) previewDesktop.addEventListener('click', () => {
+    const f = document.getElementById('full-preview');
+    if (f) f.style.maxWidth = 'none';
+  });
+  const previewMobile = document.getElementById('preview-mobile');
+  if (previewMobile) previewMobile.addEventListener('click', () => {
+    const f = document.getElementById('full-preview');
+    if (f) f.style.maxWidth = '390px';
+  });
+
+  // Comp view actions
+  document.querySelectorAll('[data-action="go-review"]').forEach(el => {
+    el.addEventListener('click', () => { state.page = 'comp-review'; state.reviewTab = 0; render(); });
+  });
+  document.querySelectorAll('[data-action="go-assemble"]').forEach(el => {
+    el.addEventListener('click', () => { state.page = 'comp-assemble'; render(); });
+  });
+
+  // Maillage
+  const saveArticlesBtn = document.getElementById('save-articles-internes');
+  if (saveArticlesBtn) saveArticlesBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    const lines = document.getElementById('articles-internes').value.split('\n').filter(l=>l.trim());
+    comp.articlesInternes = lines.map(l => {
+      const [url, titre] = l.split('|').map(s=>s.trim());
+      return { url, titre: titre||url };
+    });
+    saveDB(); showToast('Articles internes enregistrés !');
+  });
+
+  document.querySelectorAll('[data-apply-maillage]').forEach(el => {
+    el.addEventListener('click', () => {
+      const comp = getComp(); if (!comp) return;
+      const pid = parseInt(el.dataset.applyMaillage);
+      const bloc = comp.blocs.maillage[pid]; if (!bloc) return;
+      const phs = bloc.placeholders || {};
+      document.querySelectorAll(`[data-pid="${pid}"]`).forEach(input => {
+        const ph = input.dataset.ph;
+        const val = input.value.trim();
+        if (ph && val) {
+          phs[ph] = val;
+          bloc.html = bloc.html.replace(new RegExp(ph.replace(/[{}]/g,'\\$&'),'g'), val);
+        }
+      });
+      bloc.placeholders = phs;
+      bloc.status = 'edited';
+      saveDB(); render();
+      showToast('Maillage mis à jour !');
+    });
+  });
+
+  document.querySelectorAll('[data-clean-maillage]').forEach(el => {
+    el.addEventListener('click', () => {
+      const comp = getComp(); if (!comp) return;
+      const pid = parseInt(el.dataset.cleanMaillage);
+      const bloc = comp.blocs.maillage[pid]; if (!bloc) return;
+      bloc.html = bloc.html.replace(/<a[^>]*>\{\{[^}]+\}\}<\/a>/g, '');
+      bloc.html = bloc.html.replace(/\{\{[^}]+\}\}/g, '');
+      bloc.status = 'edited';
+      saveDB(); render();
+      showToast('Placeholders vides supprimés !');
+    });
+  });
+}
+
+function bindModal() {
+  const closeModal = () => {
+    document.getElementById('modal-root').innerHTML = '';
+  };
+  document.getElementById('close-product-modal')?.addEventListener('click', closeModal);
+  document.getElementById('close-product-modal-2')?.addEventListener('click', closeModal);
+  document.getElementById('product-modal')?.addEventListener('click', e => {
+    if (e.target.id === 'product-modal') closeModal();
+  });
+
+  const saveBtn = document.getElementById('pm-save');
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    const comp = getComp(); if (!comp) return;
+    const pid = document.getElementById('pm-pid').value;
+    const isNew = saveBtn.dataset.isNew === 'true';
+    const usages = [...document.querySelectorAll('[name="pm-usage"]:checked')].map(i => i.value);
+    const data = {
+      id: isNew ? uid() : parseInt(pid)||pid,
+      nom: document.getElementById('pm-nom').value.trim(),
+      marque: document.getElementById('pm-marque').value,
+      prix: parseFloat(document.getElementById('pm-prix').value)||0,
+      note: parseFloat(document.getElementById('pm-note').value)||0,
+      poids: parseFloat(document.getElementById('pm-poids').value)||0,
+      drop: parseFloat(document.getElementById('pm-drop').value)||0,
+      mousse: document.getElementById('pm-mousse').value.trim(),
+      usages,
+      pointFort1: document.getElementById('pm-pf1').value.trim(),
+      pointFort2: document.getElementById('pm-pf2').value.trim(),
+      pointFaible: document.getElementById('pm-pfail').value.trim(),
+      urlImage: document.getElementById('pm-img').value.trim(),
+      urlAffilie: document.getElementById('pm-aff').value.trim(),
+      urlTest: document.getElementById('pm-test').value.trim(),
+    };
+    if (!data.nom || !data.marque) { showToast('Nom et marque obligatoires.', 'err'); return; }
+    if (isNew) {
+      comp.produits.push(data);
+    } else {
+      const idx = comp.produits.findIndex(p => p.id == pid);
+      if (idx >= 0) comp.produits[idx] = data; else comp.produits.push(data);
+    }
+    saveDB(); closeModal(); render();
+    showToast(isNew ? 'Produit ajouté !' : 'Produit mis à jour !');
+  });
+}
+
+function bindDragDrop() {
+  const list = document.getElementById('cn-product-list');
+  if (!list) return;
+  let dragged = null;
+  list.querySelectorAll('.product-item[draggable]').forEach(item => {
+    item.addEventListener('dragstart', () => { dragged = item; item.classList.add('dragging'); });
+    item.addEventListener('dragend', () => { dragged = null; item.classList.remove('dragging'); });
+    item.addEventListener('dragover', e => { e.preventDefault(); if (dragged && dragged !== item) {
+      const rect = item.getBoundingClientRect();
+      const mid = rect.top + rect.height / 2;
+      if (e.clientY < mid) list.insertBefore(dragged, item);
+      else list.insertBefore(dragged, item.nextSibling);
+    }});
+    item.addEventListener('drop', () => {
+      const comp = getComp(); if (!comp) return;
+      const newOrder = [...list.querySelectorAll('.product-item')].map(el => parseInt(el.dataset.pid));
+      comp.produits.sort((a,b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+      saveDB();
+    });
+  });
+}
+
+// ─── BLOC HELPERS ─────────────────────────────────────────────────────────────
+function setBlocHtml(comp, key, html) {
+  if (key.includes(':')) {
+    const [type, pid] = key.split(':');
+    if (comp.blocs[type]?.[parseInt(pid)]) {
+      comp.blocs[type][parseInt(pid)].html = html;
+      comp.blocs[type][parseInt(pid)].status = 'edited';
+    }
+  } else {
+    if (comp.blocs[key]) { comp.blocs[key].html = html; comp.blocs[key].status = 'edited'; }
+  }
+}
+
+function setBlocStatus(comp, key, status) {
+  if (key.includes(':')) {
+    const [type, pid] = key.split(':');
+    if (comp.blocs[type]?.[parseInt(pid)]) comp.blocs[type][parseInt(pid)].status = status;
+  } else {
+    if (comp.blocs[key]) comp.blocs[key].status = status;
+  }
+}
+
+async function regenBloc(key) {
+  const comp = getComp(); if (!comp) return;
+  if (!db.apiKey) { showToast('Clé API manquante.', 'err'); return; }
+  const pr = DEFAULT_PROMPTS;
+  const csv = produitsToCSV(comp.produits);
+  const modeles = comp.produits.map(p => `${p.marque} ${p.nom}`).join(', ');
+  setBlocStatus(comp, key, 'generating');
+  saveDB(); render();
+  try {
+    let html = '';
+    if (key.includes(':')) {
+      const [type, pidStr] = key.split(':');
+      const pid = parseInt(pidStr);
+      const p = comp.produits.find(x => x.id == pid);
+      if (!p) throw new Error('Produit introuvable');
+      const csvP = produitToCSV(p);
+      if (type === 'fiches') html = await callClaude(pr.sys, pr.p_fiche(p.nom, p.marque, csvP, ''));
+      else if (type === 'paragraphes') html = await callClaude(pr.sys, pr.p_paragraphe(p.nom, p.marque, csvP));
+      else if (type === 'maillage') {
+        const articles = (comp.articlesInternes||[]).map(a => `${a.titre} : ${a.url}`).join('\n');
+        html = await callClaude(pr.sys, pr.p_maillage(p.nom, p.marque, articles), 'claude-haiku-4-5');
+      }
+      else if (type === 'images') html = genImageBlock(p);
+      else if (type === 'cta') html = genCtaBlock(p);
+    } else {
+      if (key === 'intro') html = await callClaude(pr.sys, pr.p_intro(comp.titre, csv, comp.produits.length));
+      else if (key === 'tableau') html = await callClaude(pr.sys, pr.p_tableau(csv, TEMPLATE_TABLEAU_CSS));
+      else if (key === 'educatif') html = await callClaude(pr.sys, pr.p_educatif(csv, modeles));
+      else if (key === 'conclusion') html = await callClaude(pr.sys, pr.p_conclusion(csv));
+      else if (key === 'faq') html = await callClaude(pr.sys, pr.p_faq(comp.titre, modeles, TEMPLATE_FAQ_CSS));
+    }
+    setBlocHtml(comp, key, html);
+    setBlocStatus(comp, key, 'generated');
+    saveDB(); render();
+    showToast('Bloc régénéré !');
+  } catch(e) {
+    setBlocStatus(comp, key, 'error');
+    saveDB(); render();
+    showToast('Erreur : ' + e.message, 'err');
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
