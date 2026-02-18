@@ -321,9 +321,76 @@ const STEP_LABELS = [
 ];
 
 // ─── TEMPLATES ───────────────────────────────────────────────────────────────
-const TEMPLATE_TABLEAU_CSS = `.cc-table-card{width:min(1100px,100%);background:#fff;border-radius:14px;box-shadow:0 12px 30px rgba(2,6,23,.08);overflow:hidden;border:1px solid #e9eef5;margin:0 auto}.cc-table-scroll{overflow:auto;max-height:70vh;-webkit-overflow-scrolling:touch}table.cc-table{width:100%;border-collapse:collapse;table-layout:auto;font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;color:#0f172a;background:#fff}.cc-table th,.cc-table td{padding:12px;text-align:left;white-space:nowrap}.cc-table thead th{position:sticky;top:0;z-index:2;background:linear-gradient(180deg,#03CAA1,#02b59a);color:#fff;font-weight:700;letter-spacing:.2px;cursor:pointer;user-select:none;border-bottom:1px solid rgba(0,0,0,.12)}.cc-th-inner{display:inline-flex;align-items:center;gap:8px}.cc-sort-icon{width:14px;height:14px;opacity:.8;transition:transform .18s ease}.cc-table thead th[aria-sort="ascending"] .cc-sort-icon{transform:rotate(180deg)}.cc-table tbody tr:nth-child(even){background:#f8fafc}.cc-table tbody tr:hover{background:#f0fbf8}.cc-is-sorted{box-shadow:inset 0 -2px 0 0 #03CAA1}.cc-link{color:#03CAA1;font-weight:600;text-decoration:none;border-bottom:1px dashed rgba(3,202,161,.6)}.cc-link:hover{text-decoration:underline}.cc-copy{margin-left:8px;border:none;background:#f3f4f6;color:#0f172a;border-radius:8px;padding:6px;cursor:pointer}.cc-copy:hover{background:#e5e7eb}.cc-copy[aria-pressed="true"]{background:#03CAA1;color:#fff}.cc-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;font-weight:700;font-size:12px}.cc-badge-score{background:rgba(3,202,161,.14);color:#035e4d}.cc-badge-price{background:#eef2f7;color:#334155}@media(max-width:720px){.cc-table{min-width:640px;font-size:13px}.cc-table th,.cc-table td{padding:10px}}`;
+const TEMPLATE_TABLEAU_CSS = `.cc-table-card{width:min(1100px,100%);background:#fff;border-radius:14px;box-shadow:0 12px 30px rgba(2,6,23,.08);overflow:hidden;border:1px solid #e9eef5;margin:0 auto}.cc-table-scroll{overflow:auto;max-height:70vh;-webkit-overflow-scrolling:touch}table.cc-table{width:100%;border-collapse:collapse;table-layout:auto;font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;color:#0f172a;background:#fff}.cc-table th,.cc-table td{padding:12px 12px;text-align:left;white-space:nowrap}.cc-table thead th{position:sticky;top:0;z-index:2;background:linear-gradient(180deg,#03CAA1,#02b59a);color:#fff;font-weight:700;letter-spacing:.2px;cursor:pointer;user-select:none;border-bottom:1px solid rgba(0,0,0,.12)}.cc-table thead th:focus{outline:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.9)}.cc-th-inner{display:inline-flex;align-items:center;gap:8px}.cc-sort-icon{width:14px;height:14px;opacity:.8;transform:rotate(0);transition:transform .18s ease}.cc-table thead th[aria-sort="ascending"] .cc-sort-icon{transform:rotate(180deg)}.cc-table tbody tr:nth-child(even){background:#f8fafc}.cc-table tbody tr:hover{background:#f0fbf8}.cc-is-sorted{box-shadow:inset 0 -2px 0 0 #03CAA1}.cc-table td.cc-sorted-col{background-image:linear-gradient(90deg,rgba(3,202,161,.08),transparent)}.cc-link{color:#03CAA1;font-weight:600;text-decoration:none;border-bottom:1px dashed rgba(3,202,161,.6)}.cc-link:hover{text-decoration:underline}.cc-copy{margin-left:8px;border:none;background:#f3f4f6;color:#0f172a;border-radius:8px;padding:6px;cursor:pointer}.cc-copy:hover{background:#e5e7eb}.cc-copy[aria-pressed="true"]{background:#03CAA1;color:#fff}.cc-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;font-weight:700;font-size:12px}.cc-badge-score{background:rgba(3,202,161,.14);color:#035e4d}.cc-badge-price{background:#eef2f7;color:#334155}@media(max-width:720px){.cc-table{min-width:640px;font-size:13px}.cc-table th,.cc-table td{padding:10px}}`;
 
-const TEMPLATE_FAQ_CSS = `:root{--re-accent:#00C69D}*{box-sizing:border-box}.re-faq{background:#fff;border-radius:14px;padding:10px;box-shadow:0 8px 24px rgba(2,8,23,.06);border:1px solid #E8EDF2}.re-faq__title{font-size:1.05rem;font-weight:800;margin:8px 8px 12px;text-align:center}.re-faq__item{border:1px solid #E8EDF2;border-left:4px solid transparent;border-radius:12px;overflow:hidden;background:#fff;margin:12px 8px;transition:border-color .2s ease,box-shadow .2s ease}.re-faq__item[open]{border-left-color:var(--re-accent);box-shadow:0 4px 14px rgba(0,0,0,.06)}.re-faq__item summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;font-weight:800;color:#0F172A}.re-faq__item summary::-webkit-details-marker{display:none}.re-faq__item summary::after{content:"▾";font-size:18px;line-height:1;transition:transform .25s ease;color:var(--re-accent)}.re-faq__item[open] summary::after{transform:rotate(180deg)}.re-faq__item summary h3{margin:0;font-weight:800;flex:1}.re-faq__content{padding:14px 18px 18px;background:#fff;border-top:1px solid #EEF2F6;color:#334155}.re-faq__content p{margin:0 0 10px}.re-faq a{color:var(--re-accent);text-decoration:underline}`;
+const TEMPLATE_TABLEAU_JS = `(() => {
+  const boot = () => document.querySelectorAll('table.cc-table').forEach(initTable);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  const collator = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' });
+  const parseNumber = (s) => { if (!s) return NaN; return parseFloat(String(s).replace(/[^0-9.,-]/g, '').replace(',', '.')); };
+  function initTable(table){
+    if (table.__ccInited) return; table.__ccInited = true;
+    const ths = Array.from(table.querySelectorAll('thead th'));
+    ths.forEach((th,i) => {
+      th.addEventListener('click', () => toggleSort(i));
+      th.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSort(i); } });
+    });
+    let state = { index: 0, dir: 'asc' };
+    function toggleSort(i){
+      state.dir = (state.index === i && state.dir === 'asc') ? 'desc' : 'asc';
+      state.index = i;
+      updateAria(state.index, state.dir);
+      sortBy(state.index, state.dir === 'asc');
+    }
+    function updateAria(activeIndex, dir){
+      ths.forEach((th,i) => {
+        th.classList.toggle('cc-is-sorted', i === activeIndex);
+        th.setAttribute('aria-sort', i === activeIndex ? (dir === 'asc' ? 'ascending' : 'descending') : 'none');
+      });
+    }
+    function setSortedColumnStyles(colIdx){
+      table.querySelectorAll('tbody td').forEach(td => td.classList.remove('cc-sorted-col'));
+      table.querySelectorAll('tbody tr').forEach(tr => {
+        const td = tr.children[colIdx]; if (td) td.classList.add('cc-sorted-col');
+      });
+    }
+    function sortBy(index, asc){
+      const tbody = table.tBodies[0];
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const getVal = (tr, idx) => tr.children[idx]?.textContent?.trim() ?? '';
+      const sorted = rows.sort((a,b) => {
+        const va = getVal(a, index), vb = getVal(b, index);
+        const na = parseNumber(va), nb = parseNumber(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na - nb : nb - na;
+        return asc ? collator.compare(va, vb) : collator.compare(vb, va);
+      });
+      const frag = document.createDocumentFragment();
+      sorted.forEach(tr => frag.appendChild(tr));
+      tbody.appendChild(frag);
+      setSortedColumnStyles(index);
+    }
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const link = tr.querySelector('a.cc-link');
+      const btn = tr.querySelector('button.cc-copy');
+      if (!link || !btn) return;
+      btn.addEventListener('click', async () => {
+        try {
+          if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(link.href);
+          else window.prompt('Copiez le lien:', link.href);
+          btn.setAttribute('aria-pressed','true'); btn.textContent='\\u2713';
+          setTimeout(() => { btn.setAttribute('aria-pressed','false'); btn.textContent='\\u29C9'; }, 1200);
+        } catch {}
+      });
+    });
+    const m = (table.getAttribute('data-initial-sort')||'1:desc').match(/^(\\d+)\\s*:(asc|desc)$/i);
+    const col = m ? parseInt(m[1],10) : 1; const dir = (m ? m[2] : 'desc').toLowerCase();
+    updateAria(col, dir); sortBy(col, dir === 'asc');
+  }
+})();`;
+
+const TEMPLATE_PRODUCT_CSS = `:root{--bg:#F6FBFA;--card:#FFFFFF;--text:#0F172A;--muted:#64748B;--line:rgba(15,23,42,0.12);--accent:#01C59D;--bad:#EF4444;--shadow:0 10px 24px rgba(2,45,30,0.06);--radius:18px}.product-block,.product-block *{box-sizing:border-box}.product-block{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;width:100%;max-width:980px}.product-inner{display:grid;grid-template-columns:1fr;grid-template-areas:"media" "partner" "content"}@media(min-width:760px){.product-inner{grid-template-columns:46% 54%;grid-template-areas:"media content" "partner content"}}.media{grid-area:media;position:relative;background:#FFFFFF;aspect-ratio:4/3;display:grid;place-items:center}.media>*{width:100%;height:100%;display:block;object-fit:contain;background:#FFFFFF}.content{grid-area:content;padding:20px 18px 18px}.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.title{font-size:20px;font-weight:700;letter-spacing:.2px}.price{font-weight:700;border:1px solid rgba(1,197,157,.25);background:rgba(1,197,157,.08);border-radius:999px;padding:8px 12px}.specs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:6px 0 14px}.spec{border:1px solid var(--line);border-radius:12px;padding:10px 12px}.spec .label{color:var(--muted);font-size:12px}.spec .value{font-weight:600;font-size:16px}.proscons{display:grid;grid-template-columns:1fr;gap:8px}.group-title{font-size:13px;color:var(--muted);margin:2px 0}.items{display:grid;gap:8px;list-style:none;margin:0;padding:0}.item{display:grid;grid-template-columns:20px 1fr;align-items:start;gap:10px;padding:8px 10px;border-radius:12px}.item.ok{background:rgba(1,197,157,.06);border:1px solid rgba(1,197,157,.20)}.item.neg{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25)}.icon-ok{color:var(--accent)}.icon-bad{color:var(--bad)}.footer-note{margin-top:12px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}.pulse{width:8px;height:8px;border-radius:50%;background:var(--accent);position:relative}.pulse::after{content:"";position:absolute;inset:-6px;border-radius:inherit;border:2px solid var(--accent);opacity:.35;animation:ping 1.6s infinite cubic-bezier(0,0,.2,1)}@keyframes ping{0%{transform:scale(.7);opacity:.5}80%,100%{transform:scale(1.6);opacity:0}}@media(prefers-reduced-motion:reduce){.pulse::after{animation:none}}.rating{display:flex;align-items:center;gap:10px;margin:8px 0 14px;font-size:14px;color:var(--muted)}.rating .score{color:var(--text);font-weight:700}.stars{--rating:4.2;--percent:calc(var(--rating)/5*100%);font-size:18px;letter-spacing:2px;line-height:1;user-select:none;background:linear-gradient(90deg,var(--accent) var(--percent),rgba(15,23,42,0.25) var(--percent));-webkit-background-clip:text;background-clip:text;color:transparent}.usage{margin:6px 0 12px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid rgba(1,197,157,.25);background:rgba(1,197,157,.08);font-size:12px;font-weight:600;color:var(--text)}.ctas{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;outline:none;border:1px solid transparent}.btn-primary{background:var(--accent);color:#083b33;border-color:rgba(1,197,157,.35)}.btn-primary:focus-visible{box-shadow:0 0 0 3px rgba(1,197,157,.35)}.product-block{transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}.product-block:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(2,45,30,.10);border-color:rgba(1,197,157,.25)}.media>*{transition:transform .5s ease}.price{transition:background-color .2s ease,border-color .2s ease}.price:hover{background:rgba(1,197,157,.12);border-color:rgba(1,197,157,.40)}.spec,.chip,.btn{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background-color .2s ease,color .2s ease}.spec:hover{border-color:rgba(1,197,157,.35);box-shadow:0 6px 16px rgba(2,45,30,.06);transform:translateY(-2px)}.chip:hover{transform:translateY(-1px);border-color:rgba(1,197,157,.40);background:rgba(1,197,157,.12)}.item.ok:hover{background:rgba(1,197,157,.10)}.item.neg:hover{background:rgba(239,68,68,.10)}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(1,197,157,.25)}.btn-primary:active{transform:translateY(0);box-shadow:0 2px 4px rgba(1,197,157,.20)}@media(prefers-reduced-motion:reduce){.product-block,.media>*,.spec,.chip,.btn{transition:none}}.partner{grid-area:partner;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(1,197,157,.06),transparent)}.partner .label{font-size:13px;color:var(--muted)}.partner .brand{font-weight:700;color:var(--text)}.partner .link{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid rgba(1,197,157,.25);background:rgba(1,197,157,.08);text-decoration:none;font-weight:700;font-size:13px;color:var(--text);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background-color .2s ease}.partner .link:hover{transform:translateY(-1px);border-color:rgba(1,197,157,.40);background:rgba(1,197,157,.12);box-shadow:0 6px 16px rgba(2,45,30,.06)}.partner .link:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(1,197,157,.35)}`;
+
+const TEMPLATE_FAQ_CSS = `:root{--re-accent:#00C69D}*{box-sizing:border-box}.re-faq{background:#fff;border-radius:14px;padding:10px;box-shadow:0 8px 24px rgba(2,8,23,.06);border:1px solid #E8EDF2}.re-faq__title{font-size:1.05rem;font-weight:800;margin:8px 8px 12px;text-align:center}.re-faq__item{border:1px solid #E8EDF2;border-left:4px solid transparent;border-radius:12px;overflow:hidden;background:#fff;margin:12px 8px;transition:border-color .2s ease,box-shadow .2s ease}.re-faq__item[open]{border-left-color:var(--re-accent);box-shadow:0 4px 14px rgba(0,0,0,.06)}.re-faq__item summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;font-weight:800;color:#0F172A;font-size:clamp(0.98rem,0.94rem + 0.3vw,1.05rem)}.re-faq__item summary::-webkit-details-marker{display:none}.re-faq__item summary::after{content:"\\u25BE";font-size:18px;line-height:1;transition:transform .25s ease;color:var(--re-accent)}.re-faq__item[open] summary::after{transform:rotate(180deg)}.re-faq__item summary:focus-visible{outline:3px solid var(--re-accent);border-radius:10px}.re-faq__item summary h3{margin:0;font-weight:800;font-size:clamp(1rem,0.96rem + 0.35vw,1.08rem);line-height:1.2;flex:1}.re-faq__content{padding:14px 18px 18px;background:#fff;border-top:1px solid #EEF2F6;color:#334155;font-size:clamp(0.9rem,0.86rem + 0.25vw,0.98rem)}.re-faq__content p{margin:0 0 10px}.re-faq a{color:var(--re-accent);text-decoration:underline}`;
 
 // ─── PROMPTS ─────────────────────────────────────────────────────────────────
 const SYS_COMP = `Tu es un rédacteur expert spécialisé en running et chaussures de course à pied. Tu rédiges des comparatifs pour le blog Run Evasion. Ton ton est expert mais accessible. Règles : mots clés importants en <strong>, max 10 <strong> par paragraphe, format WordPress (<!-- wp:paragraph -->, <!-- wp:heading -->), pas de majuscule après les deux-points, pas de majuscule à chaque mot dans les titres. Génère uniquement du HTML WordPress valide, aucun commentaire ni markdown en dehors des balises wp.`;
@@ -344,18 +411,30 @@ Structure à produire (format WordPress) :
 
 Génère uniquement le HTML WordPress, sans markdown autour.`,
 
-  p_tableau: (csv, template_css) => `Génère le tableau HTML comparatif triable pour ces chaussures de running.
+  p_tableau: (csv, template_css, template_js) => `Génère le tableau HTML comparatif triable pour ces chaussures de running.
 
 Données CSV :
 ${csv}
 
-Template CSS à utiliser (copie exactement ce CSS dans un bloc <style>) :
+Template CSS à utiliser (copie exactement dans <style>) :
 ${template_css}
 
+Script JS de tri à inclure (copie exactement dans <script>) :
+${template_js}
+
 Instructions :
-- Crée un bloc <!-- wp:html --> complet avec <style>, <div class="cc-table-card">, <table class="cc-table" data-initial-sort="1:desc">, le tbody avec une ligne par produit, et le <script> de tri
-- Pour chaque produit : colonne Modèle (marque + nom), Note (badge cc-badge-score), Prix (badge cc-badge-price), Meilleure offre (lien cc-link vers urlAffilie + bouton cc-copy)
-- Inclus le script JS de tri complet (collator fr, parseNumber, initTable)
+- Crée un bloc <!-- wp:html --> contenant :
+  1. <style> avec le CSS ci-dessus (copie exact)
+  2. <div class="cc-table-card"><div class="cc-table-scroll" role="region" aria-label="Tableau des modèles triable" tabindex="0">
+  3. <table class="cc-table" data-initial-sort="1:desc">
+  4. <thead> avec 4 colonnes : Modèle, Note, Prix, Meilleure offre — chaque <th> avec scope="col" tabindex="0" aria-sort="none" et <span class="cc-th-inner">Nom <svg class="cc-sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg></span>
+  5. <tbody> avec une <tr> par produit :
+     - td : Marque + Nom
+     - td : <span class="cc-badge cc-badge-score">Note</span>
+     - td : <span class="cc-badge cc-badge-price">€Prix</span>
+     - td : <a class="cc-link" href="urlAffilie" target="_blank" rel="noopener">I‑Run</a> <button class="cc-copy" type="button" aria-label="Copier le lien">⧉</button>
+  6. </table></div></div>
+  7. <script> avec le JS ci-dessus (copie exact)
 - Ferme avec <!-- /wp:html -->`,
 
   p_fiche: (nom, marque, csv_produit, template_css) => `Génère la fiche produit HTML complète pour la ${marque} ${nom}.
@@ -363,29 +442,74 @@ Instructions :
 Données du produit :
 ${csv_produit}
 
-Utilise exactement le template CSS des fiches produit (variables CSS --accent #01C59D, design card avec image + partenaire + contenu). Structure :
-- <!-- wp:html -->
-- <article class="product-block"> avec <style> inline complet
-- grid : media | partner | content
-- Inclus : titre, prix, note étoiles (CSS gradient), specs (poids/drop/mousse), chips usage, pros/cons, bouton "Voir le test" si urlTest présent
-- JSON-LD Product complet (name, brand, image, description, aggregateRating, offers)
-- <!-- /wp:html -->
+CSS à utiliser (copie exactement dans <style>) :
+${template_css}
 
-Pour la description courte du JSON-LD, synthétise en 1 phrase les points forts.`,
+Structure EXACTE à respecter dans un bloc <!-- wp:html --> :
+<article class="product-block" role="region" aria-label="Bloc produit : image, spécifications et points clés">
+  <div class="product-inner">
+    <figure class="media">
+      <img src="URL_IMAGE" alt="${marque} ${nom}" loading="lazy" decoding="async" width="1200" height="900" />
+    </figure>
+    <div class="partner" role="complementary" aria-label="Acheter chez le partenaire">
+      <div class="label">Disponible chez <span class="brand">i‑Run</span></div>
+      <a class="link" href="URL_AFFILIE" target="_blank" rel="nofollow noopener" aria-label="Voir ${marque} ${nom} chez i-Run">
+        Voir chez i-Run
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 17l8-8M11 7h8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+    <div class="content">
+      <header class="header">
+        <p class="title" role="heading" aria-level="1">${marque} ${nom}</p>
+        <div class="price" aria-label="Prix X euros">PRIX€</div>
+      </header>
+      <div class="rating" aria-label="Note X sur 5">
+        <span class="score">NOTE<span aria-hidden="true">/5</span></span>
+        <span class="stars" style="--rating: NOTE" aria-hidden="true">★★★★★</span>
+      </div>
+      <section class="specs" aria-label="Spécifications">
+        <div class="spec"><div class="label">Poids</div><div class="value">POIDS&nbsp;g</div></div>
+        <div class="spec"><div class="label">Drop</div><div class="value">DROP&nbsp;mm</div></div>
+        <div class="spec"><div class="label">Mousse</div><div class="value">MOUSSE</div></div>
+      </section>
+      <section class="usage" aria-label="Utilisation conseillée">
+        <div class="chips">[un <span class="chip"> par usage]</div>
+      </section>
+      <section class="proscons" aria-label="Points forts et point faible">
+        <h2 class="group-title">Points forts</h2>
+        <ul class="items" role="list">
+          <li class="item ok"><svg class="icon-ok" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><div>POINT_FORT</div></li>
+        </ul>
+        <h2 class="group-title">Point faible</h2>
+        <ul class="items" role="list">
+          <li class="item neg"><svg class="icon-bad" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><div>POINT_FAIBLE</div></li>
+        </ul>
+      </section>
+      <div class="ctas" role="group" aria-label="Actions">
+        <a href="URL_TEST" class="btn btn-primary">Voir le test</a> (seulement si urlTest fourni)
+      </div>
+      <div class="footer-note"><span class="pulse" aria-hidden="true"></span><time datetime="DATE">Fiche mise à jour récemment</time></div>
+    </div>
+  </div>
+</article>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"${marque} ${nom}","brand":{"@type":"Brand","name":"${marque}"},"category":"Chaussure de running","image":["URL_IMAGE"],"description":"Synthèse 1 phrase","aggregateRating":{"@type":"AggregateRating","ratingValue":"NOTE","bestRating":"5"},"offers":{"@type":"Offer","priceCurrency":"EUR","price":"PRIX","availability":"https://schema.org/InStock"}}</script>
+
+Remplace les majuscules (URL_IMAGE, PRIX, NOTE, etc.) par les vraies données du CSV. Génère uniquement le bloc <!-- wp:html -->...<!-- /wp:html -->.`,
 
   p_paragraphe: (nom, marque, csv_produit) => `Rédige un paragraphe descriptif de 150-200 mots pour la ${marque} ${nom} dans un comparatif de chaussures de running.
 
 Données :
 ${csv_produit}
 
-Format :
-<!-- wp:heading {"level":2} -->
-<h2 class="wp-block-heading">${marque} ${nom} : [sous-titre accrocheur]</h2>
+Format EXACT à respecter :
+<!-- wp:heading -->
+<h2 class="wp-block-heading"><span style="color: var(--theme-palette-color-1, #00C69D);" class="stk-highlight">${marque} ${nom} : [sous-titre accrocheur]</span></h2>
 <!-- /wp:heading -->
 <!-- wp:paragraph -->
-<p>[Paragraphe descriptif avec points forts en <strong>, usage idéal, verdict]</p>
+<p>[Paragraphe descriptif avec mots clés en <strong>, usage idéal, technologie, verdict. Max 10 <strong> par paragraphe.]</p>
 <!-- /wp:paragraph -->
 
+IMPORTANT : le titre h2 doit TOUJOURS contenir le span avec class="stk-highlight" et la couleur verte var(--theme-palette-color-1, #00C69D).
 Commence directement par le bloc heading.`,
 
   p_maillage: (nom, marque, articles) => `Génère un bloc de maillage interne pour la ${marque} ${nom} dans un comparatif running.
@@ -431,7 +555,7 @@ Utilise les vraies données du CSV pour le podium. Génère uniquement les blocs
 
 Modèles inclus : ${modeles}
 
-CSS à utiliser (copie dans <style>) :
+CSS à utiliser (copie EXACTEMENT dans <style>) :
 ${template_css}
 
 Génère exactement 6 questions/réponses pertinentes sur :
@@ -442,18 +566,20 @@ Génère exactement 6 questions/réponses pertinentes sur :
 5. Question sur la durabilité ou l'entretien
 6. Question sur les sites où acheter
 
-Format :
+Format EXACT (structure HTML page complète dans un bloc wp:html) :
 <!-- wp:html -->
-<style>[CSS]</style>
+<style>[COPIE EXACTE DU CSS CI-DESSUS]</style>
 <h2>FAQ : ${titre}</h2>
 <section class="re-faq" aria-label="FAQ ${titre}">
   <details class="re-faq__item">
-    <summary><h3>[Question]</h3></summary>
-    <div class="re-faq__content"><p>[Réponse détaillée]</p></div>
+    <summary><h3>[Question en h3 à l'intérieur du summary]</h3></summary>
+    <div class="re-faq__content"><p>[Réponse détaillée 2-3 phrases]</p></div>
   </details>
-  ... (6 items)
+  ... (6 items au total, tous FERMÉS par défaut)
 </section>
-<!-- /wp:html -->`
+<!-- /wp:html -->
+
+IMPORTANT : chaque question est dans un <h3> à l'INTÉRIEUR du <summary>. Pas de <h3> en dehors.`
 };
 
 // ─── DB ───────────────────────────────────────────────────────────────────────
@@ -649,7 +775,19 @@ function genImageBlock(p) {
 function genCtaBlock(p) {
   const href = (p.urlAffilie||'').replace(/&/g,'&amp;');
   return `<!-- wp:columns {"verticalAlignment":"center","backgroundColor":"palette-color-5"} -->
-<div class="wp-block-columns are-vertically-aligned-center has-palette-color-5-background-color has-background"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><strong>Achetez la ${esc(p.marque)} ${esc(p.nom)} au meilleur prix</strong></p><!-- /wp:paragraph --></div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:buttons {"align":"wide","layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons alignwide"><!-- wp:button {"textAlign":"center"} --><div class="wp-block-button"><a class="wp-block-button__link has-text-align-center wp-element-button" href="${href}" target="_blank" rel="nofollow noreferrer noopener">Voir les meilleures offres</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:column --></div><!-- /wp:columns -->`;
+<div class="wp-block-columns are-vertically-aligned-center has-palette-color-5-background-color has-background"><!-- wp:column {"verticalAlignment":"center"} -->
+<div class="wp-block-column is-vertically-aligned-center"><!-- wp:paragraph {"align":"center"} -->
+<p class="has-text-align-center"><strong>-15% sur la ${esc(p.marque)} ${esc(p.nom)} avec le code &nbsp;IRUNEVASION15</strong></p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column -->
+<!-- wp:column {"verticalAlignment":"center"} -->
+<div class="wp-block-column is-vertically-aligned-center"><!-- wp:buttons {"align":"wide","layout":{"type":"flex","justifyContent":"center"}} -->
+<div class="wp-block-buttons alignwide"><!-- wp:button {"textAlign":"center"} -->
+<div class="wp-block-button"><a class="wp-block-button__link has-text-align-center wp-element-button" href="${href}" rel="nofollow">Voir l'offre</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons --></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns -->`;
 }
 
 // ─── PIPELINE ─────────────────────────────────────────────────────────────────
@@ -685,7 +823,7 @@ async function runCompSteps(compId) {
     if (skip(comp.blocs.tableau)) { setStep(1,'done'); }
     else {
       setStep(1, 'active');
-      comp.blocs.tableau.html = await callClaude(sys, callPrompt('p_tableau', {csv, template_css: TEMPLATE_TABLEAU_CSS}));
+      comp.blocs.tableau.html = await callClaude(sys, callPrompt('p_tableau', {csv, template_css: TEMPLATE_TABLEAU_CSS, template_js: TEMPLATE_TABLEAU_JS}));
       comp.blocs.tableau.status = 'generated';
       setStep(1, 'done'); saveDB();
     }
@@ -701,7 +839,7 @@ async function runCompSteps(compId) {
         const csvP = produitToCSV(p);
         const articles = (comp.articlesInternes||[]).map(a => `${a.titre} : ${a.url}`).join('\n');
         if (!skip(comp.blocs.fiches[p.id])) {
-          comp.blocs.fiches[p.id].html = await callClaude(sys, callPrompt('p_fiche', {nom: p.nom, marque: p.marque, csv_produit: csvP, template_css: ''}));
+          comp.blocs.fiches[p.id].html = await callClaude(sys, callPrompt('p_fiche', {nom: p.nom, marque: p.marque, csv_produit: csvP, template_css: TEMPLATE_PRODUCT_CSS}));
           comp.blocs.fiches[p.id].status = 'generated';
         }
         if (!skip(comp.blocs.images[p.id])) {
@@ -778,9 +916,9 @@ async function runCompSteps(compId) {
 function assembleComparatif(comp) {
   let html = '';
   html += (comp.blocs.intro.html || '') + '\n';
-  html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">Top ${comp.produits.length} des meilleures chaussures de running</h2>\n<!-- /wp:heading -->\n`;
+  html += `<!-- wp:heading -->\n<h2 class="wp-block-heading">Top ${comp.produits.length} des meilleures chaussures de running : comparatif prix &amp; note</h2>\n<!-- /wp:heading -->\n`;
   html += (comp.blocs.tableau.html || '') + '\n';
-  html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">Fiches &amp; avis détaillés</h2>\n<!-- /wp:heading -->\n`;
+  html += `<!-- wp:heading -->\n<h2 class="wp-block-heading">Fiches &amp; avis détaillés des ${comp.produits.length} meilleures chaussures de running</h2>\n<!-- /wp:heading -->\n`;
   comp.produits.forEach(p => {
     const paraHtml = comp.blocs.paragraphes[p.id]?.html || '';
     // Ajouter un heading de secours si le paragraphe n'en contient pas
@@ -933,30 +1071,26 @@ function createDemoComp() {
 
 function buildDemoBlocs(produits) {
   const b = { fiches:{}, images:{}, paragraphes:{}, cta:{}, maillage:{} };
+  const svgSort = '<svg class="cc-sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>';
+  const thH = (label) => '<th scope="col" tabindex="0" aria-sort="none"><span class="cc-th-inner">' + label + ' ' + svgSort + '</span></th>';
 
   // INTRO
   b.intro = { status:'validated', html: [
     '<!-- wp:paragraph -->',
-    '<p>Choisir la <strong>bonne chaussure de running</strong> peut transformer votre expérience de course. Que vous soyez un coureur régulier cherchant le confort ultime ou un compétiteur visant un record personnel, le marché regorge d\'options en 2026. Nous avons passé au crible <strong>3 modèles phares</strong> pour vous aider à faire le bon choix.</p>',
+    '<p>Que vous débutiez la <strong>course à pied</strong> ou cherchiez à améliorer vos performances, le choix de vos <strong>chaussures de running</strong> est crucial. Une bonne paire influence directement votre <strong>confort</strong>, vos <strong>performances</strong> et la prévention des <strong>blessures</strong>. Nous avons passé au crible <strong>3 modèles phares</strong> pour vous aider à faire le bon choix.</p>',
     '<!-- /wp:paragraph -->',
-    '<!-- wp:heading {"level":2} -->',
-    '<h2 class="wp-block-heading">Comment nous avons sélectionné ces modèles</h2>',
+    '<!-- wp:heading -->',
+    '<h2 class="wp-block-heading">Notre méthodologie de sélection</h2>',
     '<!-- /wp:heading -->',
     '<!-- wp:paragraph -->',
-    '<p>Notre sélection repose sur <strong>4 critères clés</strong> : le rapport qualité/prix, les tests terrain sur plus de 100 km par modèle, l\'adéquation aux différents profils de coureurs et les retours de notre communauté. Chaque paire a été évaluée sur route, piste et chemin.</p>',
-    '<!-- /wp:paragraph -->',
-    '<!-- wp:heading {"level":2} -->',
-    '<h2 class="wp-block-heading">Résumé rapide</h2>',
-    '<!-- /wp:heading -->',
-    '<!-- wp:paragraph -->',
-    '<p><strong>Meilleur choix polyvalent</strong> : Asics SuperBlast 2. <strong>Meilleur pour la compétition</strong> : Nike Vaporfly 3. <strong>Meilleur rapport qualité/prix</strong> : Hoka Clifton 9.</p>',
+    '<p>Pour établir ce <strong>classement 2026</strong>, nous avons testé chaque modèle sur plus de 200 km dans des conditions variées incluant <strong>route</strong>, <strong>chemin</strong>, pluie et différentes <strong>allures</strong>. Nos critères d\'évaluation comprennent le <strong>confort</strong>, l\'<strong>absorption des chocs</strong>, la <strong>stabilité</strong>, le <strong>rapport qualité/prix</strong> et la <strong>durabilité</strong>.</p>',
     '<!-- /wp:paragraph -->'
   ].join('\n') };
 
-  // TABLEAU
-  b.tableau = { status:'validated', html: '<!-- wp:html -->\n<style>' + TEMPLATE_TABLEAU_CSS + '</style>\n<div class="cc-table-card"><div class="cc-table-scroll"><table class="cc-table"><thead><tr><th>Modèle</th><th>Note</th><th>Prix</th><th>Poids</th><th>Drop</th><th>Offre</th></tr></thead><tbody>'
-    + produits.map(p => '<tr><td><strong>' + p.marque + '</strong> ' + p.nom + '</td><td><span class="cc-badge cc-badge-score">⭐ ' + p.note + '/5</span></td><td><span class="cc-badge cc-badge-price">' + p.prix + '€</span></td><td>' + p.poids + 'g</td><td>' + p.drop + 'mm</td><td><a class="cc-link" href="' + p.urlAffilie + '" target="_blank" rel="nofollow">Voir l\'offre</a></td></tr>').join('')
-    + '</tbody></table></div></div>\n<!-- /wp:html -->' };
+  // TABLEAU avec CSS + JS complet
+  b.tableau = { status:'validated', html: '<!-- wp:html -->\n<style>\n' + TEMPLATE_TABLEAU_CSS + '\n</style>\n<div class="cc-table-card">\n  <div class="cc-table-scroll" role="region" aria-label="Tableau des modèles triable" tabindex="0">\n    <table class="cc-table" data-initial-sort="1:desc">\n      <thead>\n        <tr>\n          ' + thH('Modèle') + '\n          ' + thH('Note') + '\n          ' + thH('Prix') + '\n          ' + thH('Meilleure offre') + '\n        </tr>\n      </thead>\n      <tbody>\n'
+    + produits.map(p => '        <tr>\n          <td>' + p.marque + ' ' + p.nom + '</td>\n          <td><span class="cc-badge cc-badge-score">' + p.note + '</span></td>\n          <td><span class="cc-badge cc-badge-price">\u20AC' + p.prix + '</span></td>\n          <td>\n            <a class="cc-link" href="' + p.urlAffilie + '" target="_blank" rel="noopener">I\u2011Run</a>\n            <button class="cc-copy" type="button" aria-label="Copier le lien">\u29C9</button>\n          </td>\n        </tr>').join('\n')
+    + '\n      </tbody>\n    </table>\n  </div>\n</div>\n<script>\n' + TEMPLATE_TABLEAU_JS + '\n</script>\n<!-- /wp:html -->' };
 
   // EDUCATIF
   b.educatif = { status:'validated', html: [
@@ -971,39 +1105,46 @@ function buildDemoBlocs(produits) {
     '<!-- wp:heading {"level":2} -->', '<h2 class="wp-block-heading">Notre verdict final</h2>', '<!-- /wp:heading -->',
     '<!-- wp:paragraph -->', '<p>Ces trois modèles représentent le <strong>meilleur du running en 2026</strong>. Le marché a évolué avec des mousses toujours plus légères et réactives.</p>', '<!-- /wp:paragraph -->',
     '<!-- wp:heading {"level":2} -->', '<h2 class="wp-block-heading">Top 3 de notre sélection</h2>', '<!-- /wp:heading -->',
-    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">🥇 Nike Vaporfly 3 — La reine de la compétition</h3>', '<!-- /wp:heading -->',
-    '<!-- wp:paragraph -->', '<p>Note de <strong>4.8/5</strong>. Combinaison <strong>ZoomX + plaque carbone</strong> pour un retour d\'énergie inégalé. 260€ justifiés pour la performance pure.</p>', '<!-- /wp:paragraph -->',
-    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">🥈 Asics SuperBlast 2 — La polyvalente</h3>', '<!-- /wp:heading -->',
+    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">1. Nike Vaporfly 3 \u2014 La reine de la compétition</h3>', '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->', '<p>Note de <strong>4.8/5</strong>. Combinaison <strong>ZoomX + plaque carbone</strong> pour un retour d\'énergie inégalé. 260\u20AC justifiés pour la performance pure.</p>', '<!-- /wp:paragraph -->',
+    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">2. Asics SuperBlast 2 \u2014 La polyvalente</h3>', '<!-- /wp:heading -->',
     '<!-- wp:paragraph -->', '<p>Note de <strong>4.7/5</strong>. Du footing au tempo, elle excelle partout. <strong>246g</strong> et mousse FF Turbo : une arme redoutable.</p>', '<!-- /wp:paragraph -->',
-    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">🥉 Hoka Clifton 9 — Le meilleur rapport qualité/prix</h3>', '<!-- /wp:heading -->',
-    '<!-- wp:paragraph -->', '<p>À <strong>150€</strong>, un amorti digne du premium. Note de <strong>4.5/5</strong>. Le choix idéal pour les sorties longues.</p>', '<!-- /wp:paragraph -->'
+    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">3. Hoka Clifton 9 \u2014 Le meilleur rapport qualité/prix</h3>', '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->', '<p>À <strong>150\u20AC</strong>, un amorti digne du premium. Note de <strong>4.5/5</strong>. Le choix idéal pour les sorties longues.</p>', '<!-- /wp:paragraph -->'
   ].join('\n') };
 
-  // FAQ
-  b.faq = { status:'validated', html: '<!-- wp:html -->\n<style>' + TEMPLATE_FAQ_CSS + '</style>\n<h2>FAQ : meilleures chaussures de running 2026</h2>\n<section class="re-faq" aria-label="FAQ running">'
-    + '<details class="re-faq__item"><summary><h3>Quelle chaussure pour un débutant ?</h3></summary><div class="re-faq__content"><p>La <strong>Hoka Clifton 9</strong> : amorti protecteur, prix accessible à 150€, confort immédiat.</p></div></details>'
-    + '<details class="re-faq__item"><summary><h3>La plaque carbone est-elle adaptée à l\'entraînement ?</h3></summary><div class="re-faq__content"><p>Non, la Vaporfly 3 est conçue pour la <strong>compétition</strong> (300 km max). Préférez la SuperBlast 2 au quotidien.</p></div></details>'
-    + '<details class="re-faq__item"><summary><h3>Amorti ou réactivité ?</h3></summary><div class="re-faq__content"><p>Sorties longues → amorti (Clifton 9). Compétition → réactivité (Vaporfly 3). Polyvalence → SuperBlast 2.</p></div></details>'
-    + '<details class="re-faq__item"><summary><h3>Quel drop choisir ?</h3></summary><div class="re-faq__content"><p>8 mm (SuperBlast, Vaporfly) pour la majorité. 5 mm (Clifton 9) pour une foulée plus naturelle.</p></div></details>'
-    + '<details class="re-faq__item"><summary><h3>Où acheter au meilleur prix ?</h3></summary><div class="re-faq__content"><p>Nous recommandons <strong>i-Run.fr</strong>, spécialiste running français. Comparez aussi Alltricks et les sites de marques pendant les soldes.</p></div></details>'
-    + '<details class="re-faq__item"><summary><h3>Quelle durée de vie ?</h3></summary><div class="re-faq__content"><p><strong>600-800 km</strong> pour l\'entraînement (Clifton, SuperBlast). <strong>300-500 km</strong> pour la compétition (Vaporfly).</p></div></details>'
+  // FAQ avec CSS complet
+  b.faq = { status:'validated', html: '<!-- wp:html -->\n<style>\n' + TEMPLATE_FAQ_CSS + '\n</style>\n<h2>FAQ : meilleures chaussures de running 2026</h2>\n<section class="re-faq" aria-label="FAQ Chaussures de running">\n'
+    + '  <details class="re-faq__item">\n    <summary><h3>Quelle chaussure pour un débutant ?</h3></summary>\n    <div class="re-faq__content"><p>La <strong>Hoka Clifton 9</strong> est idéale pour débuter : amorti protecteur, prix accessible à 150\u20AC et confort immédiat dès le premier usage.</p></div>\n  </details>\n'
+    + '  <details class="re-faq__item">\n    <summary><h3>La plaque carbone est-elle adaptée à l\'entraînement ?</h3></summary>\n    <div class="re-faq__content"><p>Non, la Vaporfly 3 est conçue pour la <strong>compétition</strong> (300 km max). Préférez la SuperBlast 2 pour l\'entraînement quotidien.</p></div>\n  </details>\n'
+    + '  <details class="re-faq__item">\n    <summary><h3>Amorti ferme ou moelleux, comment choisir ?</h3></summary>\n    <div class="re-faq__content"><p>L\'amorti ferme offre plus de réactivité pour les tempos. L\'amorti moelleux privilégie le confort pour les longues distances. C\'est avant tout une question de préférence.</p></div>\n  </details>\n'
+    + '  <details class="re-faq__item">\n    <summary><h3>Quel drop choisir ?</h3></summary>\n    <div class="re-faq__content"><p>8 mm (SuperBlast, Vaporfly) pour la majorité des coureurs. 5 mm (Clifton 9) pour une foulée plus naturelle.</p></div>\n  </details>\n'
+    + '  <details class="re-faq__item">\n    <summary><h3>Où acheter au meilleur prix ?</h3></summary>\n    <div class="re-faq__content"><p>Nous recommandons <strong>i-Run.fr</strong>, spécialiste running français. Utilisez le code IRUNEVASION15 pour -15% sur votre commande.</p></div>\n  </details>\n'
+    + '  <details class="re-faq__item">\n    <summary><h3>Combien de kilomètres avant de changer ses chaussures ?</h3></summary>\n    <div class="re-faq__content"><p><strong>600-800 km</strong> pour l\'entraînement (Clifton, SuperBlast). <strong>300-500 km</strong> pour la compétition (Vaporfly). Surveillez l\'usure de la semelle.</p></div>\n  </details>\n'
     + '</section>\n<!-- /wp:html -->' };
 
   // BLOCS PAR PRODUIT
-  const subtitles = { demo1:'la polyvalente qui redéfinit les standards', demo2:'la machine à records', demo3:'le confort accessible' };
+  const subtitles = { demo1:'le choix premium', demo2:'la machine à records', demo3:'le confort accessible' };
   const descs = {
-    demo1: 'L\'Asics SuperBlast 2 est la chaussure qui nous a le plus impressionnés. Sa <strong>mousse FF Turbo</strong> offre un rebond incroyable tout en conservant un amorti généreux. À <strong>246 grammes</strong>, elle se fait oublier aux pieds. Que ce soit pour un footing ou du fractionné, elle s\'adapte à toutes les allures. Son seul défaut : un prix de 220€ qui peut freiner.',
-    demo2: 'La Nike Vaporfly 3 n\'a plus rien à prouver : c\'est <strong>la chaussure de marathon la plus primée</strong> de l\'histoire. Sa plaque carbone dans la mousse <strong>ZoomX</strong> crée un effet trampoline à chaque foulée. Avec <strong>196 grammes</strong>, c\'est la plus légère de notre sélection. Attention à sa durabilité limitée : c\'est une chaussure de compétition.',
-    demo3: 'La Hoka Clifton 9 est la <strong>référence du confort</strong>. Sa mousse CMEVA offre un amorti moelleux idéal pour les <strong>sorties longues</strong> et la récupération. Son drop de 5 mm encourage une foulée naturelle. À <strong>150€</strong>, rapport qualité/prix imbattable. Elle manque de dynamisme pour les séances rapides, mais pour le plaisir de courir, elle est imbattable.'
+    demo1: 'La <strong>SuperBlast 2</strong> représente le summum de la technologie <strong>Asics</strong>. Sa double densité de <strong>mousse</strong> offre un équilibre parfait entre <strong>amorti moelleux</strong> et <strong>réactivité</strong>. La <strong>FlyteFoam Blast Turbo</strong> apporte <strong>légèreté</strong> et <strong>dynamisme</strong>. Cette <strong>chaussure de running</strong> convient aux <strong>entraînements rapides</strong> comme aux <strong>sorties longues</strong>. Son poids contenu de 246g en fait une option remarquable pour combiner <strong>protection</strong> et <strong>performance</strong>.',
+    demo2: 'La Nike Vaporfly 3 n\'a plus rien à prouver : c\'est <strong>la chaussure de marathon la plus primée</strong> de l\'histoire. Sa plaque carbone dans la mousse <strong>ZoomX</strong> crée un effet trampoline à chaque foulée. Avec <strong>196 grammes</strong>, c\'est la plus légère de notre sélection. Attention à sa <strong>durabilité limitée</strong> : c\'est une <strong>chaussure de compétition</strong> avant tout.',
+    demo3: 'La <strong>Clifton 9</strong> perpétue la tradition <strong>Hoka</strong> du <strong>maximalisme accessible</strong>. Son <strong>amorti généreux</strong> offre une sensation de marcher sur un nuage. Sa géométrie <strong>Meta-Rocker</strong> facilite la <strong>transition talon-pointe</strong>. À <strong>150\u20AC</strong>, le <strong>rapport qualité/prix</strong> est imbattable pour les <strong>débutants</strong> ou les <strong>coureurs</strong> privilégiant le <strong>confort absolu</strong>.'
   };
+  const svgOk = '<svg class="icon-ok" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const svgBad = '<svg class="icon-bad" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const svgArrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 17l8-8M11 7h8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const today = new Date().toISOString().slice(0,10);
 
   produits.forEach(p => {
-    b.paragraphes[p.id] = { status:'validated', html: '<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">' + p.marque + ' ' + p.nom + ' : ' + subtitles[p.id] + '</h2>\n<!-- /wp:heading -->\n<!-- wp:paragraph -->\n<p>' + descs[p.id] + '</p>\n<!-- /wp:paragraph -->' };
+    // Heading with stk-highlight green color
+    b.paragraphes[p.id] = { status:'validated', html: '<!-- wp:heading -->\n<h2 class="wp-block-heading"><span style="color: var(--theme-palette-color-1, #00C69D);" class="stk-highlight">' + p.marque + ' ' + p.nom + ' : ' + subtitles[p.id] + '</span></h2>\n<!-- /wp:heading -->\n<!-- wp:block {"ref":10309} /-->\n<!-- wp:paragraph -->\n<p>' + descs[p.id] + '</p>\n<!-- /wp:paragraph -->' };
 
     b.images[p.id] = { status:'validated', html: genImageBlock(p) };
     b.cta[p.id] = { status:'validated', html: genCtaBlock(p) };
 
-    b.fiches[p.id] = { status:'validated', html: '<!-- wp:html -->\n<article style="max-width:900px;margin:20px auto;background:#fff;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);border:1px solid #e9eef5;overflow:hidden;font-family:system-ui,sans-serif">\n<div style="display:grid;grid-template-columns:250px 1fr;gap:0">\n<div style="background:#f8fafc;display:flex;align-items:center;justify-content:center;padding:24px"><img src="' + p.urlImage + '" alt="' + p.marque + ' ' + p.nom + '" style="max-width:100%;max-height:200px;object-fit:contain" loading="lazy"></div>\n<div style="padding:24px">\n<h3 style="margin:0 0 8px;font-size:20px;font-weight:800">' + p.marque + ' ' + p.nom + '</h3>\n<div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800;color:#03CAA1">' + p.prix + '€</span><span style="background:rgba(3,202,161,.12);color:#035e4d;padding:4px 10px;border-radius:999px;font-weight:700;font-size:13px">⭐ ' + p.note + '/5</span></div>\n<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;font-size:13px"><div style="background:#f8fafc;padding:8px;border-radius:8px;text-align:center"><strong>' + p.poids + 'g</strong><br><span style="color:#64748b;font-size:11px">Poids</span></div><div style="background:#f8fafc;padding:8px;border-radius:8px;text-align:center"><strong>' + p.drop + 'mm</strong><br><span style="color:#64748b;font-size:11px">Drop</span></div><div style="background:#f8fafc;padding:8px;border-radius:8px;text-align:center"><strong>' + p.mousse + '</strong><br><span style="color:#64748b;font-size:11px">Mousse</span></div></div>\n<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">' + p.usages.map(function(u){return '<span style="background:#dbeafe;color:#1e40af;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600">' + u + '</span>';}).join('') + '</div>\n<div style="margin-bottom:12px;font-size:13px"><span style="color:#03CAA1;font-weight:700">✓</span> ' + p.pointFort1 + '<br><span style="color:#03CAA1;font-weight:700">✓</span> ' + p.pointFort2 + '<br><span style="color:#ef4444;font-weight:700">✕</span> ' + p.pointFaible + '</div>\n' + (p.urlTest ? '<a href="' + p.urlTest + '" style="color:#03CAA1;font-weight:600;font-size:13px">Voir le test complet →</a>' : '') + '\n</div></div></article>\n<!-- /wp:html -->' };
+    // Product card with exact template
+    const noteComma = String(p.note).replace('.', ',');
+    b.fiches[p.id] = { status:'validated', html: '<!-- wp:html -->\n<style>\n' + TEMPLATE_PRODUCT_CSS + '\n</style>\n<article class="product-block" role="region" aria-label="Bloc produit : image, spécifications et points clés">\n  <div class="product-inner">\n    <figure class="media">\n      <img src="' + p.urlImage + '" alt="' + p.marque + ' ' + p.nom + '" loading="lazy" decoding="async" width="1200" height="900" />\n    </figure>\n    <div class="partner" role="complementary" aria-label="Acheter chez le partenaire">\n      <div class="label">Disponible chez <span class="brand">i\u2011Run</span></div>\n      <a class="link" href="' + p.urlAffilie + '" target="_blank" rel="nofollow noopener" aria-label="Voir ' + p.marque + ' ' + p.nom + ' chez i-Run">\n        Voir chez i-Run\n        ' + svgArrow + '\n      </a>\n    </div>\n    <div class="content">\n      <header class="header">\n        <p class="title" role="heading" aria-level="1">' + p.marque + ' ' + p.nom + '</p>\n        <div class="price" aria-label="Prix ' + p.prix + ' euros">' + p.prix + '\u20AC</div>\n      </header>\n      <div class="rating" aria-label="Note ' + noteComma + ' sur 5">\n        <span class="score">' + noteComma + '<span aria-hidden="true">/5</span></span>\n        <span class="stars" style="--rating: ' + p.note + '" aria-hidden="true">\u2605\u2605\u2605\u2605\u2605</span>\n      </div>\n      <section class="specs" aria-label="Spécifications">\n        <div class="spec"><div class="label">Poids</div><div class="value">' + p.poids + '&nbsp;g</div></div>\n        <div class="spec"><div class="label">Drop</div><div class="value">' + p.drop + '&nbsp;mm</div></div>\n        <div class="spec"><div class="label">Mousse</div><div class="value">' + p.mousse + '</div></div>\n      </section>\n      <section class="usage" aria-label="Utilisation conseillée">\n        <div class="chips">\n          ' + p.usages.map(function(u){return '<span class="chip">' + u + '</span>';}).join('\n          ') + '\n        </div>\n      </section>\n      <section class="proscons" aria-label="Points forts et point faible">\n        <h2 class="group-title">Points forts</h2>\n        <ul class="items" role="list">\n          <li class="item ok">' + svgOk + '<div>' + p.pointFort1 + '</div></li>\n          <li class="item ok">' + svgOk + '<div>' + p.pointFort2 + '</div></li>\n        </ul>\n        <h2 class="group-title">Point faible</h2>\n        <ul class="items" role="list">\n          <li class="item neg">' + svgBad + '<div>' + p.pointFaible + '</div></li>\n        </ul>\n      </section>\n' + (p.urlTest ? '      <div class="ctas" role="group" aria-label="Actions">\n        <a href="' + p.urlTest + '" class="btn btn-primary">Voir le test</a>\n      </div>\n' : '') + '      <div class="footer-note"><span class="pulse" aria-hidden="true"></span><time datetime="' + today + '">Fiche mise à jour récemment</time></div>\n    </div>\n  </div>\n</article>\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Product",\n  "name": "' + p.marque + ' ' + p.nom + '",\n  "brand": {"@type": "Brand", "name": "' + p.marque + '"},\n  "category": "Chaussure de running",\n  "image": ["' + p.urlImage + '"],\n  "description": "' + p.pointFort1 + '. ' + p.pointFort2 + '. Poids ' + p.poids + ' g, drop ' + p.drop + ' mm.",\n  "aggregateRating": {"@type": "AggregateRating", "ratingValue": "' + p.note + '", "bestRating": "5"},\n  "offers": {"@type": "Offer", "priceCurrency": "EUR", "price": "' + p.prix + '", "availability": "https://schema.org/InStock"}\n}\n</script>\n<!-- /wp:html -->' };
 
     b.maillage[p.id] = { status:'validated', placeholders:{}, html: '<!-- wp:paragraph -->\n<p>Retrouvez <a href="' + (p.urlTest||'#') + '">notre test complet de la ' + p.marque + ' ' + p.nom + '</a> pour un avis détaillé. Consultez aussi <a href="https://run-evasion.fr/comparatif/marathon-2026/">notre comparatif marathon 2026</a>.</p>\n<!-- /wp:paragraph -->' };
   });
@@ -2354,14 +2495,14 @@ async function regenBloc(key) {
       if (!p) throw new Error('Produit introuvable');
       const csvP = produitToCSV(p);
       const articles = (comp.articlesInternes||[]).map(a => `${a.titre} : ${a.url}`).join('\n');
-      if (type === 'fiches') html = await callClaude(sys, callPrompt('p_fiche', {nom: p.nom, marque: p.marque, csv_produit: csvP, template_css: ''}));
+      if (type === 'fiches') html = await callClaude(sys, callPrompt('p_fiche', {nom: p.nom, marque: p.marque, csv_produit: csvP, template_css: TEMPLATE_PRODUCT_CSS}));
       else if (type === 'paragraphes') html = await callClaude(sys, callPrompt('p_paragraphe', {nom: p.nom, marque: p.marque, csv_produit: csvP}));
       else if (type === 'maillage') html = await callClaude(sys, callPrompt('p_maillage', {nom: p.nom, marque: p.marque, articles}), 'claude-haiku-4-5');
       else if (type === 'images') html = genImageBlock(p);
       else if (type === 'cta') html = genCtaBlock(p);
     } else {
       if (key === 'intro') html = await callClaude(sys, callPrompt('p_intro', {titre: comp.titre, csv, nbProduits: comp.produits.length, nb: comp.produits.length}));
-      else if (key === 'tableau') html = await callClaude(sys, callPrompt('p_tableau', {csv, template_css: TEMPLATE_TABLEAU_CSS}));
+      else if (key === 'tableau') html = await callClaude(sys, callPrompt('p_tableau', {csv, template_css: TEMPLATE_TABLEAU_CSS, template_js: TEMPLATE_TABLEAU_JS}));
       else if (key === 'educatif') html = await callClaude(sys, callPrompt('p_educatif', {csv, modeles}));
       else if (key === 'conclusion') html = await callClaude(sys, callPrompt('p_conclusion', {csv}));
       else if (key === 'faq') html = await callClaude(sys, callPrompt('p_faq', {titre: comp.titre, modeles, template_css: TEMPLATE_FAQ_CSS}));
