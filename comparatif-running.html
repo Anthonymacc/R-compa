@@ -908,6 +908,108 @@ function renderSidebar() {
 </button>`;
 }
 
+// ─── DEMO ────────────────────────────────────────────────────────────────────
+function createDemoComp() {
+  const id = Date.now();
+  const p1 = { id:'demo1', nom:'SuperBlast 2', marque:'Asics', prix:220, note:4.7, poids:246, drop:8, mousse:'FF Turbo', usages:['Footing','Endurance','Tempo'], pointFort1:'Polyvalence exceptionnelle', pointFort2:'Légèreté record', pointFaible:'Prix élevé', urlImage:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', urlAffilie:'https://fsx.i-run.fr/?redir=asics-superblast-2', urlTest:'https://run-evasion.fr/test/asics-superblast-2/' };
+  const p2 = { id:'demo2', nom:'Vaporfly 3', marque:'Nike', prix:260, note:4.8, poids:196, drop:8, mousse:'ZoomX + plaque carbone', usages:['Marathon','Compétition','Tempo'], pointFort1:'Retour d\'énergie maximal', pointFort2:'Légèreté extrême (196g)', pointFaible:'Durabilité limitée (300 km)', urlImage:'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400', urlAffilie:'https://fsx.i-run.fr/?redir=nike-vaporfly-3', urlTest:'https://run-evasion.fr/test/nike-vaporfly-3/' };
+  const p3 = { id:'demo3', nom:'Clifton 9', marque:'Hoka One', prix:150, note:4.5, poids:248, drop:5, mousse:'CMEVA améliorée', usages:['Footing','Sorties longues','Récupération'], pointFort1:'Amorti moelleux référence', pointFort2:'Excellent rapport qualité/prix', pointFaible:'Manque de dynamisme', urlImage:'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400', urlAffilie:'https://fsx.i-run.fr/?redir=hoka-clifton-9', urlTest:'https://run-evasion.fr/test/hoka-clifton-9/' };
+  const produits = [p1, p2, p3];
+  const blocs = buildDemoBlocs(produits);
+  const comp = {
+    id, titre:'Meilleures chaussures de running 2026 (article test)', thematique:'general',
+    status:'ready', date: new Date().toISOString().slice(0,10), targetSite:'Run Evasion',
+    produits, blocs, articleAssemble:'', articlesInternes:[],
+    usage:{ inputTokens:24500, outputTokens:18200, cost:0.32, apiCalls:8 }
+  };
+  comp.articleAssemble = assembleComparatif(comp);
+  db.comparatifs.unshift(comp);
+  saveDB();
+  state.compId = comp.id;
+  state.page = 'comp-assemble';
+  render();
+  showToast('Article test créé !');
+}
+
+function buildDemoBlocs(produits) {
+  const b = { fiches:{}, images:{}, paragraphes:{}, cta:{}, maillage:{} };
+
+  // INTRO
+  b.intro = { status:'validated', html: [
+    '<!-- wp:paragraph -->',
+    '<p>Choisir la <strong>bonne chaussure de running</strong> peut transformer votre expérience de course. Que vous soyez un coureur régulier cherchant le confort ultime ou un compétiteur visant un record personnel, le marché regorge d\'options en 2026. Nous avons passé au crible <strong>3 modèles phares</strong> pour vous aider à faire le bon choix.</p>',
+    '<!-- /wp:paragraph -->',
+    '<!-- wp:heading {"level":2} -->',
+    '<h2 class="wp-block-heading">Comment nous avons sélectionné ces modèles</h2>',
+    '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->',
+    '<p>Notre sélection repose sur <strong>4 critères clés</strong> : le rapport qualité/prix, les tests terrain sur plus de 100 km par modèle, l\'adéquation aux différents profils de coureurs et les retours de notre communauté. Chaque paire a été évaluée sur route, piste et chemin.</p>',
+    '<!-- /wp:paragraph -->',
+    '<!-- wp:heading {"level":2} -->',
+    '<h2 class="wp-block-heading">Résumé rapide</h2>',
+    '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->',
+    '<p><strong>Meilleur choix polyvalent</strong> : Asics SuperBlast 2. <strong>Meilleur pour la compétition</strong> : Nike Vaporfly 3. <strong>Meilleur rapport qualité/prix</strong> : Hoka Clifton 9.</p>',
+    '<!-- /wp:paragraph -->'
+  ].join('\n') };
+
+  // TABLEAU
+  b.tableau = { status:'validated', html: '<!-- wp:html -->\n<style>' + TEMPLATE_TABLEAU_CSS + '</style>\n<div class="cc-table-card"><div class="cc-table-scroll"><table class="cc-table"><thead><tr><th>Modèle</th><th>Note</th><th>Prix</th><th>Poids</th><th>Drop</th><th>Offre</th></tr></thead><tbody>'
+    + produits.map(p => '<tr><td><strong>' + p.marque + '</strong> ' + p.nom + '</td><td><span class="cc-badge cc-badge-score">⭐ ' + p.note + '/5</span></td><td><span class="cc-badge cc-badge-price">' + p.prix + '€</span></td><td>' + p.poids + 'g</td><td>' + p.drop + 'mm</td><td><a class="cc-link" href="' + p.urlAffilie + '" target="_blank" rel="nofollow">Voir l\'offre</a></td></tr>').join('')
+    + '</tbody></table></div></div>\n<!-- /wp:html -->' };
+
+  // EDUCATIF
+  b.educatif = { status:'validated', html: [
+    '<!-- wp:heading {"level":2} -->', '<h2 class="wp-block-heading">Comment choisir ses chaussures de running ?</h2>', '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->', '<p>Le choix d\'une chaussure dépend de <strong>quatre facteurs</strong> : votre type de foulée, le terrain, la distance visée et votre budget. Un coureur de marathon n\'a pas les mêmes besoins qu\'un joggeur du dimanche.</p>', '<!-- /wp:paragraph -->',
+    '<!-- wp:heading {"level":2} -->', '<h2 class="wp-block-heading">Les critères techniques à connaître</h2>', '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->', '<p><strong>Le drop</strong> influence votre foulée : élevé (10-12 mm) pour l\'attaque talon, faible (0-6 mm) pour le médio-pied. <strong>Le poids</strong> compte en compétition. <strong>La mousse</strong> détermine le confort : les PEBA (ZoomX) offrent le meilleur retour d\'énergie, l\'EVA est plus durable.</p>', '<!-- /wp:paragraph -->'
+  ].join('\n') };
+
+  // CONCLUSION
+  b.conclusion = { status:'validated', html: [
+    '<!-- wp:heading {"level":2} -->', '<h2 class="wp-block-heading">Notre verdict final</h2>', '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->', '<p>Ces trois modèles représentent le <strong>meilleur du running en 2026</strong>. Le marché a évolué avec des mousses toujours plus légères et réactives.</p>', '<!-- /wp:paragraph -->',
+    '<!-- wp:heading {"level":2} -->', '<h2 class="wp-block-heading">Top 3 de notre sélection</h2>', '<!-- /wp:heading -->',
+    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">🥇 Nike Vaporfly 3 — La reine de la compétition</h3>', '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->', '<p>Note de <strong>4.8/5</strong>. Combinaison <strong>ZoomX + plaque carbone</strong> pour un retour d\'énergie inégalé. 260€ justifiés pour la performance pure.</p>', '<!-- /wp:paragraph -->',
+    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">🥈 Asics SuperBlast 2 — La polyvalente</h3>', '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->', '<p>Note de <strong>4.7/5</strong>. Du footing au tempo, elle excelle partout. <strong>246g</strong> et mousse FF Turbo : une arme redoutable.</p>', '<!-- /wp:paragraph -->',
+    '<!-- wp:heading {"level":3} -->', '<h3 class="wp-block-heading">🥉 Hoka Clifton 9 — Le meilleur rapport qualité/prix</h3>', '<!-- /wp:heading -->',
+    '<!-- wp:paragraph -->', '<p>À <strong>150€</strong>, un amorti digne du premium. Note de <strong>4.5/5</strong>. Le choix idéal pour les sorties longues.</p>', '<!-- /wp:paragraph -->'
+  ].join('\n') };
+
+  // FAQ
+  b.faq = { status:'validated', html: '<!-- wp:html -->\n<style>' + TEMPLATE_FAQ_CSS + '</style>\n<h2>FAQ : meilleures chaussures de running 2026</h2>\n<section class="re-faq" aria-label="FAQ running">'
+    + '<details class="re-faq__item"><summary><h3>Quelle chaussure pour un débutant ?</h3></summary><div class="re-faq__content"><p>La <strong>Hoka Clifton 9</strong> : amorti protecteur, prix accessible à 150€, confort immédiat.</p></div></details>'
+    + '<details class="re-faq__item"><summary><h3>La plaque carbone est-elle adaptée à l\'entraînement ?</h3></summary><div class="re-faq__content"><p>Non, la Vaporfly 3 est conçue pour la <strong>compétition</strong> (300 km max). Préférez la SuperBlast 2 au quotidien.</p></div></details>'
+    + '<details class="re-faq__item"><summary><h3>Amorti ou réactivité ?</h3></summary><div class="re-faq__content"><p>Sorties longues → amorti (Clifton 9). Compétition → réactivité (Vaporfly 3). Polyvalence → SuperBlast 2.</p></div></details>'
+    + '<details class="re-faq__item"><summary><h3>Quel drop choisir ?</h3></summary><div class="re-faq__content"><p>8 mm (SuperBlast, Vaporfly) pour la majorité. 5 mm (Clifton 9) pour une foulée plus naturelle.</p></div></details>'
+    + '<details class="re-faq__item"><summary><h3>Où acheter au meilleur prix ?</h3></summary><div class="re-faq__content"><p>Nous recommandons <strong>i-Run.fr</strong>, spécialiste running français. Comparez aussi Alltricks et les sites de marques pendant les soldes.</p></div></details>'
+    + '<details class="re-faq__item"><summary><h3>Quelle durée de vie ?</h3></summary><div class="re-faq__content"><p><strong>600-800 km</strong> pour l\'entraînement (Clifton, SuperBlast). <strong>300-500 km</strong> pour la compétition (Vaporfly).</p></div></details>'
+    + '</section>\n<!-- /wp:html -->' };
+
+  // BLOCS PAR PRODUIT
+  const subtitles = { demo1:'la polyvalente qui redéfinit les standards', demo2:'la machine à records', demo3:'le confort accessible' };
+  const descs = {
+    demo1: 'L\'Asics SuperBlast 2 est la chaussure qui nous a le plus impressionnés. Sa <strong>mousse FF Turbo</strong> offre un rebond incroyable tout en conservant un amorti généreux. À <strong>246 grammes</strong>, elle se fait oublier aux pieds. Que ce soit pour un footing ou du fractionné, elle s\'adapte à toutes les allures. Son seul défaut : un prix de 220€ qui peut freiner.',
+    demo2: 'La Nike Vaporfly 3 n\'a plus rien à prouver : c\'est <strong>la chaussure de marathon la plus primée</strong> de l\'histoire. Sa plaque carbone dans la mousse <strong>ZoomX</strong> crée un effet trampoline à chaque foulée. Avec <strong>196 grammes</strong>, c\'est la plus légère de notre sélection. Attention à sa durabilité limitée : c\'est une chaussure de compétition.',
+    demo3: 'La Hoka Clifton 9 est la <strong>référence du confort</strong>. Sa mousse CMEVA offre un amorti moelleux idéal pour les <strong>sorties longues</strong> et la récupération. Son drop de 5 mm encourage une foulée naturelle. À <strong>150€</strong>, rapport qualité/prix imbattable. Elle manque de dynamisme pour les séances rapides, mais pour le plaisir de courir, elle est imbattable.'
+  };
+
+  produits.forEach(p => {
+    b.paragraphes[p.id] = { status:'validated', html: '<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">' + p.marque + ' ' + p.nom + ' : ' + subtitles[p.id] + '</h2>\n<!-- /wp:heading -->\n<!-- wp:paragraph -->\n<p>' + descs[p.id] + '</p>\n<!-- /wp:paragraph -->' };
+
+    b.images[p.id] = { status:'validated', html: genImageBlock(p) };
+    b.cta[p.id] = { status:'validated', html: genCtaBlock(p) };
+
+    b.fiches[p.id] = { status:'validated', html: '<!-- wp:html -->\n<article style="max-width:900px;margin:20px auto;background:#fff;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);border:1px solid #e9eef5;overflow:hidden;font-family:system-ui,sans-serif">\n<div style="display:grid;grid-template-columns:250px 1fr;gap:0">\n<div style="background:#f8fafc;display:flex;align-items:center;justify-content:center;padding:24px"><img src="' + p.urlImage + '" alt="' + p.marque + ' ' + p.nom + '" style="max-width:100%;max-height:200px;object-fit:contain" loading="lazy"></div>\n<div style="padding:24px">\n<h3 style="margin:0 0 8px;font-size:20px;font-weight:800">' + p.marque + ' ' + p.nom + '</h3>\n<div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800;color:#03CAA1">' + p.prix + '€</span><span style="background:rgba(3,202,161,.12);color:#035e4d;padding:4px 10px;border-radius:999px;font-weight:700;font-size:13px">⭐ ' + p.note + '/5</span></div>\n<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;font-size:13px"><div style="background:#f8fafc;padding:8px;border-radius:8px;text-align:center"><strong>' + p.poids + 'g</strong><br><span style="color:#64748b;font-size:11px">Poids</span></div><div style="background:#f8fafc;padding:8px;border-radius:8px;text-align:center"><strong>' + p.drop + 'mm</strong><br><span style="color:#64748b;font-size:11px">Drop</span></div><div style="background:#f8fafc;padding:8px;border-radius:8px;text-align:center"><strong>' + p.mousse + '</strong><br><span style="color:#64748b;font-size:11px">Mousse</span></div></div>\n<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">' + p.usages.map(function(u){return '<span style="background:#dbeafe;color:#1e40af;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600">' + u + '</span>';}).join('') + '</div>\n<div style="margin-bottom:12px;font-size:13px"><span style="color:#03CAA1;font-weight:700">✓</span> ' + p.pointFort1 + '<br><span style="color:#03CAA1;font-weight:700">✓</span> ' + p.pointFort2 + '<br><span style="color:#ef4444;font-weight:700">✕</span> ' + p.pointFaible + '</div>\n' + (p.urlTest ? '<a href="' + p.urlTest + '" style="color:#03CAA1;font-weight:600;font-size:13px">Voir le test complet →</a>' : '') + '\n</div></div></article>\n<!-- /wp:html -->' };
+
+    b.maillage[p.id] = { status:'validated', placeholders:{}, html: '<!-- wp:paragraph -->\n<p>Retrouvez <a href="' + (p.urlTest||'#') + '">notre test complet de la ' + p.marque + ' ' + p.nom + '</a> pour un avis détaillé. Consultez aussi <a href="https://run-evasion.fr/comparatif/marathon-2026/">notre comparatif marathon 2026</a>.</p>\n<!-- /wp:paragraph -->' };
+  });
+  return b;
+}
+
 // ─── RENDER HOME ──────────────────────────────────────────────────────────────
 function renderHome() {
   const comps = db.comparatifs || [];
@@ -925,10 +1027,14 @@ function renderHome() {
       <h3>Aucun comparatif pour l'instant</h3>
       <p>Créez votre premier comparatif de chaussures de running !</p>
       <br>
-      <button class="btn btn-primary" data-page="comp-new">+ Nouveau comparatif</button>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-primary" data-page="comp-new">+ Nouveau comparatif</button>
+        <button class="btn btn-ghost" id="btn-demo">🧪 Créer un article test</button>
+      </div>
     </div>
   ` : `
-    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px">
+      <button class="btn btn-ghost btn-sm" id="btn-demo">🧪 Article test</button>
       <button class="btn btn-primary" data-page="comp-new">+ Nouveau comparatif</button>
     </div>
     <div class="comp-grid">
@@ -1804,6 +1910,10 @@ function bind() {
       state.page = p; render();
     });
   });
+
+  // Demo button
+  const demoBtn = document.getElementById('btn-demo');
+  if (demoBtn) demoBtn.addEventListener('click', createDemoComp);
 
   // Home actions
   document.querySelectorAll('[data-action="open-comp"]').forEach(el => {
