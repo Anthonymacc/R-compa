@@ -478,6 +478,7 @@ const state = {
   stepStatus: Array(10).fill('pending'),  // for progress page
   generating: false,
   toast: null,
+  liveUsage: { inputTokens: 0, outputTokens: 0, cost: 0, apiCalls: 0 },
 };
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -550,6 +551,22 @@ function getPrompt(key) {
   return db.customPrompts[key] || DEFAULT_PROMPTS[key];
 }
 
+// ─── PRICING ─────────────────────────────────────────────────────────────────
+const MODEL_PRICING = {
+  'claude-sonnet-4-5': { input: 3, output: 15 },   // $/M tokens
+  'claude-haiku-4-5':  { input: 0.80, output: 4 },
+};
+const EUR_PER_USD = 0.93;
+
+function calcCost(inputTokens, outputTokens, model) {
+  const p = MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-5'];
+  return ((inputTokens * p.input + outputTokens * p.output) / 1_000_000) * EUR_PER_USD;
+}
+
+function formatCost(eur) {
+  return eur < 0.01 ? '<0,01€' : eur.toFixed(2).replace('.', ',') + '€';
+}
+
 // ─── API ──────────────────────────────────────────────────────────────────────
 async function callClaude(system, prompt, model='claude-sonnet-4-5') {
   const apiKey = db.apiKey;
@@ -574,6 +591,27 @@ async function callClaude(system, prompt, model='claude-sonnet-4-5') {
     throw new Error(`API Claude erreur ${res.status}: ${err?.error?.message || res.statusText}`);
   }
   const data = await res.json();
+  // Track usage
+  const usage = data.usage || {};
+  const tokIn = usage.input_tokens || 0;
+  const tokOut = usage.output_tokens || 0;
+  const cost = calcCost(tokIn, tokOut, model);
+  // Accumulate in current comp
+  const comp = getComp();
+  if (comp) {
+    if (!comp.usage) comp.usage = { inputTokens: 0, outputTokens: 0, cost: 0, apiCalls: 0 };
+    comp.usage.inputTokens += tokIn;
+    comp.usage.outputTokens += tokOut;
+    comp.usage.cost += cost;
+    comp.usage.apiCalls += 1;
+    saveDB();
+  }
+  // Also track in state for real-time display
+  state.liveUsage.inputTokens += tokIn;
+  state.liveUsage.outputTokens += tokOut;
+  state.liveUsage.cost += cost;
+  state.liveUsage.apiCalls += 1;
+
   return data.content[0].text;
 }
 
@@ -620,6 +658,8 @@ async function runCompSteps(compId) {
   if (!comp) return;
   state.generating = true;
   state.stepStatus = Array(10).fill('pending');
+  state.liveUsage = { inputTokens: 0, outputTokens: 0, cost: 0, apiCalls: 0 };
+  if (!comp.usage) comp.usage = { inputTokens: 0, outputTokens: 0, cost: 0, apiCalls: 0 };
   comp.status = 'generating';
   saveDB(); render();
 
@@ -899,6 +939,7 @@ function renderHome() {
             <span>${c.produits?.length||0} produits</span>
             <span>${c.date||''}</span>
             <span><span class="badge ${statusMap[c.status]||'badge-gray'}">${statusLabel[c.status]||c.status}</span></span>
+            ${c.usage ? `<span style="font-weight:600">💰 ${formatCost(c.usage.cost)}</span>` : ''}
           </div>
           <div style="display:flex;gap:8px;margin-top:12px">
             <button class="btn btn-sm btn-secondary" data-comp-id="${c.id}" data-action="continue-comp">Continuer</button>
@@ -1040,15 +1081,36 @@ function renderCompNew() {
 
   ${comp.produits.length >= 2 ? (() => {
     const n = comp.produits.length;
-    const apiCalls = 2 + n * 3 + 3; // intro+tableau + N*(fiche+para+maillage) + educ+concl+faq
-    const tokIn = Math.round((500 + 3000 + n*(3000+1000+500) + 1500+1500+1500));
-    const tokOut = Math.round((800 + 4000 + n*(4000+500+300) + 3000+1500+2000));
-    const costEur = ((tokIn * 3 + tokOut * 15) / 1_000_000 * 0.93).toFixed(2);
-    const mins = Math.round(apiCalls * 0.4);
-    return `<div class="alert alert-info" style="margin-top:12px">
-      💡 <strong>Estimation pour ${n} produits :</strong>
-      ~${apiCalls} appels API · ~${(tokIn/1000).toFixed(0)}K tokens in / ${(tokOut/1000).toFixed(0)}K tokens out ·
-      <strong>~${costEur}€</strong> · ~${mins} min
+    // Appels API : intro + tableau + N*(fiche+paragraphe+maillage) + educatif + conclusion + faq
+    const sonnetCalls = 2 + n * 2 + 3; // intro, tableau, N*fiche, N*para, educ, concl, faq
+    const haikuCalls = n; // N * maillage
+    const apiCalls = sonnetCalls + haikuCalls;
+    // Estimation tokens Sonnet (intro, tableau, fiches, paragraphes, educatif, conclusion, faq)
+    const sonnetIn = 500 + 3000 + n*(3000+1000) + 1500 + 1500 + 1500;
+    const sonnetOut = 800 + 4000 + n*(4000+500) + 3000 + 1500 + 2000;
+    // Estimation tokens Haiku (maillage)
+    const haikuIn = n * 500;
+    const haikuOut = n * 300;
+    const costSonnet = calcCost(sonnetIn, sonnetOut, 'claude-sonnet-4-5');
+    const costHaiku = calcCost(haikuIn, haikuOut, 'claude-haiku-4-5');
+    const costTotal = costSonnet + costHaiku;
+    const totalIn = sonnetIn + haikuIn;
+    const totalOut = sonnetOut + haikuOut;
+    const mins = Math.ceil(apiCalls * 0.35);
+    return `<div class="card" style="margin-top:12px;border-left:3px solid var(--green)">
+      <div class="card-title">💰 Estimation du coût de génération</div>
+      <div class="stats-row" style="margin-bottom:12px">
+        <div class="stat-card"><div class="val">${apiCalls}</div><div class="lbl">Appels API</div></div>
+        <div class="stat-card"><div class="val">${(totalIn/1000).toFixed(0)}K</div><div class="lbl">Tokens entrée</div></div>
+        <div class="stat-card"><div class="val">${(totalOut/1000).toFixed(0)}K</div><div class="lbl">Tokens sortie</div></div>
+        <div class="stat-card"><div class="val" style="color:var(--green)">${formatCost(costTotal)}</div><div class="lbl">Coût estimé</div></div>
+        <div class="stat-card"><div class="val">~${mins} min</div><div class="lbl">Durée estimée</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--gray);display:flex;flex-wrap:wrap;gap:12px">
+        <span>Sonnet : ${sonnetCalls} appels · ${formatCost(costSonnet)}</span>
+        <span>Haiku : ${haikuCalls} appels · ${formatCost(costHaiku)}</span>
+        <span>Images + CTA : ${n*2} blocs (gratuits, générés localement)</span>
+      </div>
     </div>`;
   })() : ''}
   <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
@@ -1182,6 +1244,15 @@ function renderCompProgress() {
       }).join('')}
     </div>
   </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">💰 Coût en temps réel</div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="val">${state.liveUsage.apiCalls}</div><div class="lbl">Appels API</div></div>
+      <div class="stat-card"><div class="val">${(state.liveUsage.inputTokens/1000).toFixed(1)}K</div><div class="lbl">Tokens entrée</div></div>
+      <div class="stat-card"><div class="val">${(state.liveUsage.outputTokens/1000).toFixed(1)}K</div><div class="lbl">Tokens sortie</div></div>
+      <div class="stat-card"><div class="val" style="color:${state.liveUsage.cost > 1 ? 'var(--yellow)' : 'var(--green)'}">${formatCost(state.liveUsage.cost)}</div><div class="lbl">Coût total</div></div>
+    </div>
+  </div>
   ${state.generating ? `<div class="alert alert-info" style="margin-top:16px">⏳ Génération en cours, ne fermez pas cette fenêtre…</div>` : ''}
   ${!state.generating && state.stepStatus.includes('error') ? `
     <div class="alert alert-warn" style="margin-top:16px">
@@ -1192,7 +1263,7 @@ function renderCompProgress() {
   ` : ''}
   ${!state.generating && !state.stepStatus.includes('error') && doneCount === 10 ? `
     <div class="alert" style="margin-top:16px;background:rgba(3,202,161,.1);border:1px solid rgba(3,202,161,.3);color:#035e4d">
-      ✅ Génération terminée !
+      ✅ Génération terminée ! Coût final : <strong>${formatCost(state.liveUsage.cost)}</strong>
       <button class="btn btn-primary btn-sm" style="margin-left:12px" data-page="comp-review">Aller en révision →</button>
     </div>
   ` : ''}
@@ -1420,7 +1491,22 @@ function renderCompAssemble() {
     <div class="stat-card"><div class="val">${comp.produits.length}</div><div class="lbl">Produits</div></div>
     <div class="stat-card"><div class="val">${linkCount}</div><div class="lbl">Liens</div></div>
     <div class="stat-card"><div class="val">${Math.round(articleHtml.length/1024)}Ko</div><div class="lbl">Taille HTML</div></div>
+    ${comp.usage ? `
+    <div class="stat-card"><div class="val">${comp.usage.apiCalls}</div><div class="lbl">Appels API</div></div>
+    <div class="stat-card"><div class="val">${formatCost(comp.usage.cost)}</div><div class="lbl">Coût génération</div></div>
+    ` : ''}
   </div>
+  ${comp.usage ? `
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">💰 Détails du coût de génération</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+      <div>Appels API : <strong>${comp.usage.apiCalls}</strong></div>
+      <div>Tokens entrée : <strong>${(comp.usage.inputTokens/1000).toFixed(1)}K</strong></div>
+      <div>Tokens sortie : <strong>${(comp.usage.outputTokens/1000).toFixed(1)}K</strong></div>
+      <div>Coût total : <strong style="color:var(--green)">${formatCost(comp.usage.cost)}</strong></div>
+    </div>
+  </div>
+  ` : ''}
 
   <div class="card">
     <div class="card-title">🔍 Vérifications automatiques</div>
