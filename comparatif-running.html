@@ -591,7 +591,19 @@ function loadDB() {
 function defaultDB() {
   return { apiKey: '', wpCreds: {}, comparatifs: [], customPrompts: {} };
 }
-function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function saveDB() {
+  try {
+    // Strip articleAssemble before saving (regenerable, saves ~50% space)
+    const clone = JSON.parse(JSON.stringify(db));
+    (clone.comparatifs||[]).forEach(c => { c.articleAssemble = ''; });
+    localStorage.setItem(DB_KEY, JSON.stringify(clone));
+  } catch(e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+      const usedKB = Math.round(JSON.stringify(db).length / 1024);
+      showToast(`⚠️ Stockage plein (${usedKB} Ko). Exportez vos données puis supprimez d'anciens comparatifs.`, 'error');
+    } else { throw e; }
+  }
+}
 
 let db = loadDB();
 
@@ -1174,9 +1186,13 @@ function renderHome() {
       </div>
     </div>
   ` : `
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px">
-      <button class="btn btn-ghost btn-sm" id="btn-demo">🧪 Article test</button>
-      <button class="btn btn-primary" data-page="comp-new">+ Nouveau comparatif</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--gray)">Stockage : ${Math.round(JSON.stringify(db).length/1024)} Ko / ~5 000 Ko</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" id="btn-export-db">⬇ Export JSON</button>
+        <button class="btn btn-ghost btn-sm" id="btn-demo">🧪 Article test</button>
+        <button class="btn btn-primary" data-page="comp-new">+ Nouveau comparatif</button>
+      </div>
     </div>
     <div class="comp-grid">
       ${comps.map(c => `
@@ -2050,6 +2066,17 @@ function bind() {
   const demoBtn = document.getElementById('btn-demo');
   if (demoBtn) demoBtn.addEventListener('click', createDemoComp);
 
+  // Export DB
+  const exportDbBtn = document.getElementById('btn-export-db');
+  if (exportDbBtn) exportDbBtn.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'comparatifs-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click(); URL.revokeObjectURL(a.href);
+    showToast('Export téléchargé !');
+  });
+
   // Home actions
   document.querySelectorAll('[data-action="open-comp"]').forEach(el => {
     el.addEventListener('click', () => {
@@ -2309,7 +2336,7 @@ function bind() {
   const exportHtmlBtn = document.getElementById('export-html');
   if (exportHtmlBtn) exportHtmlBtn.addEventListener('click', () => {
     const comp = getComp(); if (!comp) return;
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(comp.titre)}</title></head><body>${comp.articleAssemble}</body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(comp.titre)}</title></head><body>${comp.articleAssemble || assembleComparatif(comp)}</body></html>`;
     downloadFile(html, comp.titre.replace(/\s+/g,'-').toLowerCase() + '.html');
   });
   const exportJsonBtn = document.getElementById('export-json');
