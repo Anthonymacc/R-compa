@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Comparatif Running — Générateur</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -38,7 +37,7 @@ a{color:var(--green);text-decoration:none}
 .btn-primary{background:var(--green);color:#083b33}
 .btn-primary:hover{background:var(--green-dark)}
 .btn-secondary{background:var(--gray-border);color:var(--dark)}
-.btn-secondary:hover{background:#cbd5e1}
+.btn-secondary:hover{background:#cbd5e1}o
 .btn-danger{background:#fee2e2;color:var(--red)}
 .btn-danger:hover{background:#fecaca}
 .btn-sm{padding:5px 10px;font-size:12px}
@@ -604,13 +603,7 @@ function assembleComparatif(comp) {
   html += (comp.blocs.tableau.html || '') + '\n';
   html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">Fiches &amp; avis détaillés</h2>\n<!-- /wp:heading -->\n`;
   comp.produits.forEach(p => {
-    const paraHtml = comp.blocs.paragraphes[p.id]?.html || '';
-    // Ajouter un heading de secours si le paragraphe n'en contient pas
-    if (paraHtml && !paraHtml.includes('wp:heading')) {
-      html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">${esc(p.marque)} ${esc(p.nom)}</h2>\n<!-- /wp:heading -->\n`;
-    }
-    html += paraHtml + '\n';
-    html += (comp.blocs.images[p.id]?.html || '') + '\n';
+    html += (comp.blocs.paragraphes[p.id]?.html || '') + '\n';
     html += (comp.blocs.fiches[p.id]?.html || '') + '\n';
     html += (comp.blocs.maillage[p.id]?.html || '') + '\n';
     html += (comp.blocs.cta[p.id]?.html || '') + '\n';
@@ -889,19 +882,6 @@ function renderCompNew() {
     `}
   </div>
 
-  ${comp.produits.length >= 2 ? (() => {
-    const n = comp.produits.length;
-    const apiCalls = 2 + n * 3 + 3; // intro+tableau + N*(fiche+para+maillage) + educ+concl+faq
-    const tokIn = Math.round((500 + 3000 + n*(3000+1000+500) + 1500+1500+1500));
-    const tokOut = Math.round((800 + 4000 + n*(4000+500+300) + 3000+1500+2000));
-    const costEur = ((tokIn * 3 + tokOut * 15) / 1_000_000 * 0.93).toFixed(2);
-    const mins = Math.round(apiCalls * 0.4);
-    return `<div class="alert alert-info" style="margin-top:12px">
-      💡 <strong>Estimation pour ${n} produits :</strong>
-      ~${apiCalls} appels API · ~${(tokIn/1000).toFixed(0)}K tokens in / ${(tokOut/1000).toFixed(0)}K tokens out ·
-      <strong>~${costEur}€</strong> · ~${mins} min
-    </div>`;
-  })() : ''}
   <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
     <button class="btn btn-secondary" data-page="home">Annuler</button>
     <button class="btn btn-primary ${!allComplete?'disabled':''}" id="cn-launch" ${!allComplete?'disabled':''} title="${!allComplete?'Ajoutez au moins 2 produits complets':''}">
@@ -1034,19 +1014,6 @@ function renderCompProgress() {
     </div>
   </div>
   ${state.generating ? `<div class="alert alert-info" style="margin-top:16px">⏳ Génération en cours, ne fermez pas cette fenêtre…</div>` : ''}
-  ${!state.generating && state.stepStatus.includes('error') ? `
-    <div class="alert alert-warn" style="margin-top:16px">
-      ❌ La génération s'est interrompue. Les blocs déjà générés sont sauvegardés.
-      <br><br>
-      <button class="btn btn-primary" id="btn-reprendre">🔄 Reprendre la génération</button>
-    </div>
-  ` : ''}
-  ${!state.generating && !state.stepStatus.includes('error') && doneCount === 10 ? `
-    <div class="alert" style="margin-top:16px;background:rgba(3,202,161,.1);border:1px solid rgba(3,202,161,.3);color:#035e4d">
-      ✅ Génération terminée !
-      <button class="btn btn-primary btn-sm" style="margin-left:12px" data-page="comp-review">Aller en révision →</button>
-    </div>
-  ` : ''}
 </div>`;
 }
 
@@ -1671,18 +1638,6 @@ function bind() {
     runCompSteps(comp.id);
   });
 
-  // Reprendre génération
-  const reprendreBtn = document.getElementById('btn-reprendre');
-  if (reprendreBtn) reprendreBtn.addEventListener('click', () => {
-    const comp = getComp(); if (!comp) return;
-    if (!db.apiKey) { showToast('Clé API manquante.', 'err'); return; }
-    state.generating = true;
-    state.stepStatus = Array(10).fill('pending');
-    comp.status = 'generating';
-    render();
-    runCompSteps(comp.id);
-  });
-
   // Prompt save/reset/copy-default
   document.querySelectorAll('[data-save-prompt]').forEach(el => {
     el.addEventListener('click', () => {
@@ -1740,10 +1695,6 @@ function bind() {
         }
       }
       setBlocStatus(comp, key, 'validated');
-      // Auto-ready si tous les blocs obligatoires sont validés
-      const allGlobal = ['intro','tableau','educatif','conclusion','faq'].every(k => comp.blocs[k]?.status === 'validated');
-      const allProd = comp.produits.every(p => ['fiches','paragraphes','cta'].every(t => comp.blocs[t]?.[p.id]?.status === 'validated'));
-      if (allGlobal && allProd && comp.status === 'review') { comp.status = 'ready'; showToast('Tous les blocs validés — article prêt !'); }
       saveDB(); render();
     });
   });
