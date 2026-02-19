@@ -656,10 +656,11 @@ function newBlocs(produits) {
     intro:{ html:'', status:'pending' }, tableau:{ html:'', status:'pending' },
     educatif:{ html:'', status:'pending' }, conclusion:{ html:'', status:'pending' },
     faq:{ html:'', status:'pending' },
-    fiches:{}, paragraphes:{}, cta:{}, maillage:{}
+    fiches:{}, images:{}, paragraphes:{}, cta:{}, maillage:{}
   };
   produits.forEach(p => {
     blocs.fiches[p.id] = { html:'', status:'pending' };
+    blocs.images[p.id] = { html:'', status:'pending' };
     blocs.paragraphes[p.id] = { html:'', status:'pending' };
     blocs.cta[p.id] = { html:'', status:'pending' };
     blocs.maillage[p.id] = { html:'', status:'pending', placeholders:{} };
@@ -762,6 +763,15 @@ function callPrompt(key, vars) {
 }
 
 // ─── LOCAL GENERATORS ─────────────────────────────────────────────────────────
+function genImageBlock(p) {
+  return `<!-- wp:image {"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large">
+  <img src="${esc(p.urlImage)}" alt="${esc(p.marque)} ${esc(p.nom)} - test et avis" loading="lazy"/>
+  <figcaption>${esc(p.marque)} ${esc(p.nom)}</figcaption>
+</figure>
+<!-- /wp:image -->`;
+}
+
 function genCtaBlock(p) {
   const href = (p.urlAffilie||'').replace(/&/g,'&amp;');
   return `<!-- wp:columns {"verticalAlignment":"center","backgroundColor":"palette-color-5"} -->
@@ -831,6 +841,10 @@ async function runCompSteps(compId) {
         if (!skip(comp.blocs.fiches[p.id])) {
           comp.blocs.fiches[p.id].html = await callClaude(sys, callPrompt('p_fiche', {nom: p.nom, marque: p.marque, csv_produit: csvP, template_css: TEMPLATE_PRODUCT_CSS}));
           comp.blocs.fiches[p.id].status = 'generated';
+        }
+        if (!skip(comp.blocs.images[p.id])) {
+          comp.blocs.images[p.id].html = genImageBlock(p);
+          comp.blocs.images[p.id].status = 'generated';
         }
         if (!skip(comp.blocs.paragraphes[p.id])) {
           comp.blocs.paragraphes[p.id].html = await callClaude(sys, callPrompt('p_paragraphe', {nom: p.nom, marque: p.marque, csv_produit: csvP}));
@@ -912,6 +926,7 @@ function assembleComparatif(comp) {
       html += `<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">${esc(p.marque)} ${esc(p.nom)}</h2>\n<!-- /wp:heading -->\n`;
     }
     html += paraHtml + '\n';
+    html += (comp.blocs.images[p.id]?.html || '') + '\n';
     html += (comp.blocs.fiches[p.id]?.html || '') + '\n';
     html += (comp.blocs.maillage[p.id]?.html || '') + '\n';
     html += (comp.blocs.cta[p.id]?.html || '') + '\n';
@@ -1124,6 +1139,7 @@ function buildDemoBlocs(produits) {
     // Heading with stk-highlight green color
     b.paragraphes[p.id] = { status:'validated', html: '<!-- wp:heading -->\n<h2 class="wp-block-heading"><span style="color: var(--theme-palette-color-1, #00C69D);" class="stk-highlight">' + p.marque + ' ' + p.nom + ' : ' + subtitles[p.id] + '</span></h2>\n<!-- /wp:heading -->\n<!-- wp:block {"ref":10309} /-->\n<!-- wp:paragraph -->\n<p>' + descs[p.id] + '</p>\n<!-- /wp:paragraph -->' };
 
+    b.images[p.id] = { status:'validated', html: genImageBlock(p) };
     b.cta[p.id] = { status:'validated', html: genCtaBlock(p) };
 
     // Product card with exact template
@@ -1531,11 +1547,11 @@ function renderReviewOverview(comp) {
     {key:'conclusion',label:'Conclusion + Top 3'},
     {key:'faq',label:'FAQ HTML'},
   ];
-  let totalBlocs = globalBlocs.length + comp.produits.length * 4;
+  let totalBlocs = globalBlocs.length + comp.produits.length * 5;
   let validatedCount = 0;
   globalBlocs.forEach(({key}) => { if(comp.blocs[key]?.status==='validated') validatedCount++; });
   comp.produits.forEach(p => {
-    ['fiches','paragraphes','cta','maillage'].forEach(t => {
+    ['fiches','images','paragraphes','cta','maillage'].forEach(t => {
       if(comp.blocs[t]?.[p.id]?.status==='validated') validatedCount++;
     });
   });
@@ -1585,6 +1601,7 @@ function renderReviewOverview(comp) {
         <tr>
           <th>Produit</th>
           <th>Paragraphe</th>
+          <th>Image</th>
           <th>Fiche</th>
           <th>Maillage</th>
           <th>CTA</th>
@@ -1592,8 +1609,8 @@ function renderReviewOverview(comp) {
       </thead>
       <tbody>
         ${comp.produits.map(p => {
-          const keys = ['paragraphes','fiches','maillage','cta'];
-          const labels = ['paragraphes','fiches','maillage','cta'];
+          const keys = ['paragraphes','images','fiches','maillage','cta'];
+          const labels = ['paragraphes','images','fiches','maillage','cta'];
           return `<tr>
             <td><strong>${esc(p.marque)}<br><span style="font-weight:400;font-size:12px">${esc(p.nom)}</span></strong></td>
             ${keys.map(k => {
@@ -2475,6 +2492,7 @@ async function regenBloc(key) {
       if (type === 'fiches') html = await callClaude(sys, callPrompt('p_fiche', {nom: p.nom, marque: p.marque, csv_produit: csvP, template_css: TEMPLATE_PRODUCT_CSS}));
       else if (type === 'paragraphes') html = await callClaude(sys, callPrompt('p_paragraphe', {nom: p.nom, marque: p.marque, csv_produit: csvP}));
       else if (type === 'maillage') html = await callClaude(sys, callPrompt('p_maillage', {nom: p.nom, marque: p.marque, articles}), 'claude-haiku-4-5');
+      else if (type === 'images') html = genImageBlock(p);
       else if (type === 'cta') html = genCtaBlock(p);
     } else {
       if (key === 'intro') html = await callClaude(sys, callPrompt('p_intro', {titre: comp.titre, csv, nbProduits: comp.produits.length, nb: comp.produits.length}));
