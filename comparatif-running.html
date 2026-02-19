@@ -229,6 +229,7 @@ Utilise exactement le template CSS des fiches produit (variables CSS --accent #0
 - <!-- wp:html -->
 - <article class="product-block"> avec <style> inline complet
 - grid : media | partner | content
+- Dans la colonne media : <img src="[urlImage]" alt="[marque] [nom] - test et avis" loading="lazy"> (utilise la valeur urlImage du CSV comme src)
 - Inclus : titre, prix, note étoiles (CSS gradient), specs (poids/drop/mousse), chips usage, pros/cons, bouton "Voir le test" si urlTest présent
 - JSON-LD Product complet (name, brand, image, description, aggregateRating, offers)
 - <!-- /wp:html -->
@@ -377,7 +378,7 @@ function produitsToCSV(produits) {
 }
 
 function produitToCSV(p) {
-  const cols = ['nom','marque','prix','note','poids','drop','mousse','usages','pointFort1','pointFort2','pointFaible','urlAffilie','urlTest'];
+  const cols = ['nom','marque','prix','note','poids','drop','mousse','usages','pointFort1','pointFort2','pointFaible','urlImage','urlAffilie','urlTest'];
   const header = cols.join(',');
   const row = cols.map(k => {
     const v = k === 'usages' ? (p.usages||[]).join('|') : (p[k]||'');
